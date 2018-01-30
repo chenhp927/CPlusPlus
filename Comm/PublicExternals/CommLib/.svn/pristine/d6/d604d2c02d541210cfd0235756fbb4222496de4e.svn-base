@@ -1,0 +1,23 @@
+COMMON_MAKEFILE_DIR = ../CommonMakefile
+include $(COMMON_MAKEFILE_DIR)/Makefile_front
+
+XMLPATH = ../TinyXml
+SYSLIBPATH = ../SysLib
+PROTOCOLBASEPATH = ../ProtocolBase
+
+INCS = -I$(XMLPATH) -I$(SYSLIBPATH) -I$(PROTOCOLBASEPATH)
+
+OUTPUT= $(LIB_DIR)/CommLib
+
+#****************************************************************************
+# objects 
+#****************************************************************************
+
+OBJS = CommLibVer.o CommAddr.o CommIdDef.o CommUtility.o ConnState.o \
+	Fdset.o Sid.o ForwardCondition.o ProtocolSession.o ProtocolForward.o \
+	ClientBase.o ClientSessionBase.o ClientForwardBase.o NetClient.o \
+	ServerBase.o ServerSessionBase.o ServerForwardBase.o NetServer.o \
+	
+
+include $(COMMON_MAKEFILE_DIR)/Makefile_back_lib
+

@@ -1,0 +1,15 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_basic
+
+INTERFACE_BASE_PATH = ../InterfaceBase
+APP_INTERFACE_PATH = ../AppInterface
+FRAMEWORK_PATH = ../Framework
+
+
+ifeq ($(IS_SRLIB),1)
+EXTRA_LIBS := $(LIB_DIR)/FrameworkLib $(LIB_DIR)/InterfaceBaseLib $(EXTRA_LIBS)
+else
+EXTRA_LIBS := $(FRAMEWORK_PATH)/FrameworkLib $(INTERFACE_BASE_PATH)/InterfaceBaseLib $(EXTRA_LIBS)
+endif
+
+INCS := -I$(APP_INTERFACE_PATH) -I$(INTERFACE_BASE_PATH) $(INCS)
+

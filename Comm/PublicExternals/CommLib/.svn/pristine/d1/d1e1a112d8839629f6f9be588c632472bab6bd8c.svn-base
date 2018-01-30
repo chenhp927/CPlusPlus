@@ -1,0 +1,89 @@
+//==============================================================================
+//                      SockMacro.h
+//
+//begin   : 2016-05-12
+//describe:
+//==============================================================================
+#ifndef SELFDEF_SOCK_MACRO_H 
+#define SELFDEF_SOCK_MACRO_H 
+
+/* 下列的头文件为跨Linux/Windows平台的通信相关文件 */
+#include "TypeDef.h"
+#ifdef UNIX  
+	#include <netinet/in.h>  
+	#include <netinet/tcp.h>
+	#include <sys/types.h>  
+	#include <sys/socket.h>  
+	#include <sys/select.h> 
+	#include <arpa/inet.h>  
+	#include <sys/un.h> 
+	#include <unistd.h>  
+	#include <fcntl.h>  
+	#include <errno.h>  
+	#include <assert.h>
+	#include <stdio.h>
+#else  
+	#include <winsock2.h>  
+	#include <assert.h>
+#endif 
+
+/* 下列的宏为跨Linux/Windows平台的通信相关定义 */
+#ifdef UNIX  
+	typedef int SOCKET;  
+	#define INVALID_SOCKET			-1 
+	#define SOCKET_ERROR			-1
+	#define SOCKET_VALID(s)			(s >= 0) 
+	#define CLOSE_SOCKET(s)			do { close(s); s = INVALID_SOCKET; }while(0)
+	#define ERRNO					(errno)  
+	#define E_SOKCETINPROGRESS		EINPROGRESS
+#else  
+	typedef int socklen_t;
+	//	INVALID_SOCKET	windows已存在
+	//	SOCKET_ERROR	windows已存在
+	#define SOCKET_VALID(s)			(s >= 0) 
+	#define CLOSE_SOCKET(s)			do { closesocket(s); s = INVALID_SOCKET; }while(0)
+	#define ERRNO					(WSAGetLastError())  
+	#define E_SOKCETINPROGRESS		WSAEWOULDBLOCK 
+#endif 
+
+#ifdef HP_UX 
+	#define SUN_LEN(x)				(sizeof((x)->sun_family) + strlen((x)->sun_path)) 
+#endif 
+
+
+/* 下列的宏为通信参数的相关定义 */
+#define MAX_PACKETSIZE				(1024*1024)
+#define INIT_SESSION_SEQ			1 
+#define MAX_CLIENTS					512 
+#define DEF_MAXCLIENTS				512
+#define SEND_QUEUE_DEPTH			2048
+
+#define DEF_HEARTINTERVAL			3   // sec 
+#define DEF_HEARTTIMEOUT			6	// sec	 
+#define DEF_RETRYINTERVAL			3	// sec 
+#define DEF_ACKINTERVAL				2	// sec	 
+#define DEF_ACKTIMEOUT				9	// sec 
+#define DEF_COMMWINSIZE				1
+#define MAX_COMMWINSIZE				5
+ 
+
+/* 下列的宏为通信状态的相关定义 */
+#define CS_DISCONNECT				0 
+#define CS_CONNECTING				1 
+#define CS_CONNECT					2 
+#define CS_WAITNEG					3
+#define CS_WAITNEGACK				4
+#define CS_READY					5
+	
+
+/* 下列的宏为通信服务端拒绝连接原因的相关定义 */
+#define DENY_ILLEGAL				1 
+#define DENY_TOOMUCHSAME			2 
+#define DENY_NORESOURCE				3 
+
+/* 下列的宏为运维模块中通信状态相关定义 */
+#define RM_UNDEFINED                0x00
+#define RM_UNCONNECT                0x01
+#define RM_CONNECTED                0x02
+
+#endif 

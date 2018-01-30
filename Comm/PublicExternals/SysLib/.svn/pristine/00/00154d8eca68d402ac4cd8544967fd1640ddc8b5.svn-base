@@ -1,0 +1,522 @@
+//==============================================================================
+//	
+//							 PubDefSystem.h
+//							   
+//begin	  : 2016/08/09
+//describe: 系统常量定义
+//
+//==============================================================================
+
+#ifndef _PUB_DEF_SYSTEM_INCLUDE_
+#define _PUB_DEF_SYSTEM_INCLUDE_
+
+// 站所类型
+enum ENUM_STA_TYPE
+{
+	EST_INVALID						= 0,						// 未定义
+	EST_TRAC_SUBSTA					= 1,						// 牵引变电所
+	EST_TRAC_SECSTA					= 2,						// 牵引分区所 
+	EST_TRAC_SWITCHSTA				= 3,						// 牵引开闭所
+	EST_TRAC_SEC_SWITCHSTA			= 4,						// 牵引分区所兼开闭所  
+	EST_TRAC_ATSTA					= 5,						// 牵引AT所
+	EST_CONN_SWITCH_CTRLSTA			= 6,						// 接触网开关控制站
+	EST_POW_SUBSTA					= 7,						// 电力变配电所
+	EST_POW_DISTRIBUTION			= 8,						// 电力配电所
+	EST_POW_BOX_TRANSFOR			= 9,						// 电力箱变 
+	EST_POW_SWITCHSTA				= 10,						// 电力开关站  
+	EST_POW_LOW_VOL_SUBSTA			= 11						// 10/0.4KV低压变电所
+};
+
+// 站内对象ID类型
+enum ENUM_ID_TYPE
+{
+	EIT_INVALID						= 0,						// 未定义
+	EIT_PROTECTOR					= 1,						// 保护装置
+	EIT_SIGNAL						= 2,						// 遥信点
+	EIT_TELE_CTRL					= 3,						// 遥控点
+	EIT_MEASURE						= 4,						// 遥测点
+	EIT_OPER_DEV					= 5,						// 操控设备
+	EIT_DISP_DEV					= 6,						// 电显设备
+	EIT_COMM_DEV					= 7							// 站通信设备
+};
+
+// 遥信（控）点类型
+enum ENUM_CTRLSIGNAL_TYPE    
+{
+	ECT_INVALID						= 0,						// 未定义
+	ECT_FAR_OPER_POS				= 1,						// 远方操作位置  
+	ECT_LOCAL_OPER_POS				= 2,						// 就地操作位置
+	ECT_SWITCH_POS					= 3,						// 开关分合位置
+	ECT_RECLOSER_SWITCH				= 4,						// 开关重合闸投切
+	ECT_HAND_CART_POS				= 5,						// 手车工作位置
+	ECT_AUTO_SWITCH_DEV				= 6,						// 自投装置投切
+	ECT_SOFT_STRAP					= 7,						// 软压板投切
+	ECT_GROUND_POS					= 8,						// 接地位置
+	ECT_UPSHIFT						= 9,						// 遥调升档
+	ECT_DOWNSHIFT					= 10,						// 遥调降档
+	ECT_SHIFT						= 11,						// 遥调调档
+	ECT_INVOLUTION					= 12,						// 复归
+	ECT_GEAR_VAL					= 13,						// 档位数值位
+	ECT_GEAR_SIGN					= 14,						// 档位符号位
+	ECT_PROTECT						= 15,						// 保护
+	ECT_LINK_STATE					= 16,						// 连接状态
+	ECT_BACKUPON_INVOLUTION			= 17,						// 自投复归
+};
+
+// 遥测点类型
+enum ENUM_MEASURE_TYPE			
+{
+	EMT_INVALID						= 0,						// 未定义
+	EMT_I							= 1,						// I
+	EMT_Ia							= 2,						// Ia
+	EMT_Ib							= 3,						// Ib
+	EMT_Ic							= 4,						// Ic
+	EMT_U							= 11,						// U
+	EMT_Ua							= 12,						// Ua
+	EMT_Ub							= 13,						// Ub
+	EMT_Uc							= 14,						// Uc
+	EMT_Uab							= 15,						// Uab
+	EMT_Ubc							= 16,						// Ubc
+	EMT_Uca							= 17,						// Uca
+	EMT_Gear						= 18,						// Gear调节器
+};
+
+// 操控设备类型
+enum ENUM_OPERDEV_TYPE
+{
+	EOT_INVALID						= 0,						// 未定义
+	EOT_CIRCUIT_BREAK				= 1,						// 断路器
+	EOT_MANUAL_SWITCH				= 2,						// 手动隔离开关
+	EOT_AUTO_SWITCH					= 3,						// 电动隔离开关
+	EOT_GROUND_SWITCH				= 4,						// 三工位电动隔离开关
+	EOT_LOAD_SWITCH					= 5,						// 负荷开关
+	EOT_HAND_CART					= 6,						// 手车
+	EOT_RECLOSURE					= 7,						// 重合闸
+	EOT_BACKUPON					= 8,						// 备自投
+	EOT_SOFT_STRAP					= 9,						// 软压板
+	EOT_CURTRANS					= 10,						// 流互
+	EOT_VOLTRANS					= 11,						// 压互
+	EOT_STATION						= 12,						// 站设备
+	EOT_DEVICE						= 13,						// 装置设备
+	EOT_PARTITION					= 14,						// 间隔(挂牌用)
+	EOT_REGULATOR					= 15,						// 调节器（遥调用）
+	EOT_GND_SW_MANUAL				= 16,						// 三工位手动隔离开关
+	EOT_ARMQUOTE					= 17						// 供电臂挂牌设备
+};
+
+// 操控设备子类型
+enum ENUM_OPERDEV_SUBTYPE
+{	
+	EOS_INVALID						= 0,						// 未定义
+
+	// 断路器类型
+	EOS_CIRCUIT_BREAK				= 1,						// 断路器
+	EOS_LINK_BREAK					= 2,						// 联动断路器
+	EOS_THREELINK_BREAK				= 3,						// 三联动断路器
+
+	// 手动隔离开关				
+	EOS_MANUAL_SWITCH				= 11,					    // 手动隔离开关
+	EOS_MANUAL_LINK_SWITCH			= 12,						// 手动联动隔离开关
+
+	// 电动隔离开关				
+	EOS_AUTO_SWITCH					= 21,						// 电动隔离开关
+	EOS_AUTO_LINK_SWITCH			= 22,						// 电动联动隔离开关
+
+	// 三工位电动隔离开关			
+	EOS_GROUND_SWITCH				= 31,						// 三工位电动隔离开关
+	EOS_GROUND_LINK_SWITCH			= 32,						// 三工位电动联动隔离开关
+
+	// 负荷开关				
+	EOS_LOAD_SWITCH					= 41,						// 负荷开关
+	EOS_FUSE_LOAD_SWITCH			= 42,						// 熔断器负荷开关
+	EOS_FUSE_SWITCH					= 43,						// 熔断器开关
+
+	// 流互				
+	EOS_SINGLE_CURTRANS				= 51,						// 单相流互
+	EOS_TWO_CURTRANS				= 52,						// 两相流互
+	EOS_THREE_CURTRANS				= 53,						// 三相流互
+
+	// 压互				
+	EOS_SINGLE_VOLTRANS				= 61,						// 单相压互
+	EOS_TWO_VOLTRANS				= 62,						// 两相压互
+	EOS_THREE_VOLTRANS				= 63,						// 三相压互
+
+	// 调节器
+	EOS_REGULATOR_MEAS				= 100,						// 遥调值
+	EOS_REGULATOR_SIG8421			= 101,						// 遥信8421码
+};
+
+// 报警事件类型
+enum ENUM_ALARM_TYPE
+{
+	EAT_INVALID						= 0,						// 未定义
+
+	// ==========================报警=================================================
+	EAT_NO_ALARM					= 1,						// 不报警
+
+	// 供电系统
+	EAT_ACCIDENT					= 11,						// 事故
+	EAT_PROTECT						= 12,						// 保护
+	EAT_SWITCH_ACT					= 13,						// 开关动作
+	EAT_SWITCH_NON_TELECTRLOFF		= 14,						// 开关动作（非远动分）
+	EAT_SWITCH_NON_TELECTRLON		= 15,						// 开关动作（非远动合） 
+	EAT_SWITCH_UNCERTAIN_STATE		= 16,						// 开关不定态
+	EAT_CABINET_LEAK				= 17,						// 开关柜漏气
+	EAT_AUTO_DEV_ACT				= 18,						// 自动装置动作
+	EAT_FORENOTICE					= 19,						// 预告
+
+	// 遥测越限
+	EAT_CUR_LIMIT					= 31,						// 电流越限
+	EAT_CUR_LIMIT1					= 32,						// 电流越限1级
+	EAT_CUR_LIMIT2					= 33,						// 电流越限2级
+	EAT_VOL_LIMIT					= 34,						// 电压越限
+	EAT_VOL_LIMIT1					= 35,						// 电压越限1级
+	EAT_VOL_LIMIT2					= 36,						// 电压越限2级
+
+	// 装置报警
+	EAT_INTEL_DEV_FAILURE			= 41,						// 智能装置故障
+	EAT_INTEL_DEV_ALARM				= 42,						// 智能装置告警
+	EAT_ACDC_SCREEN_FAULT			= 43,						// 交直流屏故障
+	EAT_ACDC_SCREEN_ALARM			= 44,						// 交直流屏告警
+
+	// 安全监控
+	EAT_SAFE_SUP_ACCIDENT			= 51,						// 安监事故
+	EAT_SAFE_SUP_ALARM				= 52,						// 安监告警
+	EAT_ENV_MON_ALARM				= 53,						// 环境监测告警
+
+	// 其他报警
+	EAT_STA_COMM_STATE				= 61,						// 站通讯状态
+	EAT_STA_COMM_CH					= 62,						// 站通讯单通道状态
+	EAT_STA_COMM_CH_SW				= 63,						// 站通讯通道切换
+	EAT_OTHER_ALARM					= 99,						// 其他告警
+	
+	// ==========================非报警===============================================
+	// 普通事件
+	EAT_SWITCH_ACT_TELECTRLOFF		= 100,						// 开关动作（远动操作分）
+	EAT_SWITCH_ACT_TELECTRLON		= 101,						// 开关动作（远动操作合）
+	EAT_GEAR_INFO					= 102,						// 档位信息
+	EAT_SOE_EVENT					= 103,						// SOE事件
+	EAT_FAR_LOCAL_CHG_EVENT			= 104,						// 控制方式事件
+	EAT_OTHER_EVENT					= 110,						// 其他事件
+
+	// 操作记录
+	EAT_SINGLE_CTRL					= 120,						// 单控
+	EAT_PROGRAM_CTRL				= 121,						// 程控
+	EAT_INVOLUTION					= 122,						// 复归
+	EAT_REGULATE					= 123,						// 遥调
+	EAT_TUNE						= 124,						// 整定
+	EAT_PARAMETERS_SET				= 125,						// 参数设置
+	EAT_HAND_SET					= 126,						// 手工置位
+	EAT_QUOTE						= 127,						// 挂牌
+	EAT_BLOCK						= 128,						// 闭锁
+	EAT_LOG_ON_OFF					= 129,						// 登陆注销
+	EAT_USER_MGR					= 130,						// 用户管理
+	EAT_OTHER_OPER					= 140,						// 其他操作记录
+};
+
+// 电压等级
+enum ENUM_VOL_RATE
+{
+	EVCR_INVALID					= 0,						// 未定义
+	EVCR_AC220V						= 1,						// AC220V
+	EVCR_AC400V						= 2,						// AC400V
+	EVCR_AC35kV						= 3,						// AC35kV
+	EVCR_AC10kV						= 4,						// AC10kV
+	EVCR_AC220kV					= 5,						// AC220kV
+	EVCR_AC110kV					= 6,						// AC110kV
+	EVCR_AC27_5kVA					= 7,						// AC27.5kV
+	EVCR_DC110V						= 31,						// DC110V
+	EVCR_DC220V						= 32,						// DC220V	
+	EVCR_AC6KV						= 33,						// AC6KV
+};
+
+// 判事故方式
+enum ENUM_ACCIDENT_SENTENCE
+{
+	EAS_INVALID						= 0,						// 未定义
+	EAS_ACCIDENT_SIGNAL				= 1,						// 按事故总遥信判定
+	EAS_PROTECT_SIGNAL				= 2,						// 按保护遥信判定
+	EAS_ACCIDENT_PROTECT			= 3							// 按事故总遥信或保护遥信判定  
+};
+
+// 历史存盘方式
+#define EHT_PERIOD_TIME_INVALID		0xFFFFFFFF					// 遥测存盘的无效时间间隔
+#define EHT_PERIOD_TIME_REAL		1							// 遥测存盘实时存盘的时间间隔，秒
+enum ENUM_HISSAVE_TYPE
+{ 
+	EHT_INVALID						= 0,						// 未定义
+	EHT_NO_SAVE						= 1,						// 不存储
+	EHT_REAL_SAVE					= 2,						// 实时存储
+	EHT_PERIOD_SAVE_30				= 3,						// 30秒周期存储
+	EHT_PERIOD_SAVE_60				= 4,						// 60秒周期存储
+	EHT_PERIOD_SAVE_90				= 5,						// 90秒周期存储
+	EHT_PERIOD_SAVE_120				= 6,						// 120秒周期存储
+	EHT_PERIOD_SAVE_180				= 7,						// 180秒周期存储
+	EHT_PERIOD_SAVE_300				= 8,						// 300秒周期存储
+	EHT_PERIOD_SAVE_600				= 9,						// 600秒周期存储
+};
+
+//定值类型
+enum ENUM_FIXVALUE_TYPE
+{ 
+	EFT_INVALID						= 0,						// 未定义   
+	EFT_VALUE						= 1,						// 数值    
+	EFT_POLYMORPHISM				= 2,						// 多态   
+	EFT_CTRL_WORD					= 3,						// 控制字  
+	EFT_INT_VALUE					= 4,						// 整型数值
+	EFT_TIME						= 5,						// 时间
+	EFT_DATE						= 6,						// 日期
+	EFT_HEX							= 7,						// 16进制显示
+	EFT_SEVENTIMEDATE				= 8							// 7字节日期时间
+};
+
+//变比类型
+enum ENUM_TROUBLEPOW_TYPE
+{ 
+	ETT_INVALID						= 0,						// 未定义   
+	ETT_VOL							= 1,						// 电压    
+	ETT_HIGHPPRESSIDE_VOL			= 2,						// 高压侧电压   
+	ETT_LOWPRESSIDE_VOL				= 3,						// 低压侧电压   
+	ETT_CUR							= 4,						// 电流   
+	ETT_HIGHPRESSIDE_CUR			= 5,						// 高压侧电流
+	ETT_LOWPRESSIDE_CUR				= 6,						// 低压侧电流
+	ETT_REACTANCE					= 7,						// 阻抗
+	ETT_DIST						= 8							// 其他变比
+};
+
+//故障报告类型
+enum ENUM_FAULTREPORT_TYPE
+{ 
+	EFAT_IMPORT					= 0,							// 关键故障报告   
+	EFAT_NORMAL					= 1,							// 其他故障报告      
+};
+
+// 供电类型
+enum ENUM_POWERSUPPLY_TYPE
+{
+	EPST_INVALID					= 0,						// 未定义   
+	EPST_TRAC						= 1, 						// 牵引供电
+	EPST_POW						= 2						    // 电力供电
+};
+
+/********************* 单位类型常量定义 *****************/ 
+#define UNIT_TYPE_STA				0x01						// 车站
+#define UNIT_TYPE_CENTER			0x02						// 中心
+
+// 标志牌类型
+enum ENUM_FLAG_CARD_TYPE
+{
+    EFCT_INVALID					= 0,						// 未定义
+    EFCT_REPAIR						= 1,						// 检修
+    EFCT_CHECK						= 2,						// 临检
+    EFCT_GROUND						= 3,						// 接地
+    EFCT_IMPORTANT					= 4,						// 重要
+    EFCT_OPERATION					= 5,						// 操作
+	EFCT_FORBIDDEN					= 6,						// 限电
+	EFCT_BROKEN						= 7,						// 拉闸
+	EFCT_PROTECT					= 8,						// 保电
+	EFCT_SILENCE					= 9,						// 静音
+	EFCT_BLOCK						= 10,						// 闭锁
+	EFCT_NOCONNECT					= 11,						// 禁合
+	EFCT_DISABLE					= 12,						// 停用
+	EFCT_OVERDISTRICT				= 13,						// 越区
+	EFCT_HIGHVOLTAGE				= 14						// 高压
+};
+
+// 封锁SOE
+enum ENUM_BLOCK_STATE
+{
+    EBS_UNBLOCK                     = 0,                         // 不封锁
+    EBS_BLOCK                       = 1                          // 封锁
+};
+
+// 越限信息存储包中专用的越限类型
+enum ENUM_LIMIT_SAVE_TYPE
+{
+	ELST_RECOVER = 0,							// 越限恢复
+	ELST_UPPER1	= 1,							// 越1级上限
+	ELST_LOWER1	= 2,							// 越1级下限
+	ELST_UPPER2	= 3,							// 越2级上限
+	ELST_LOWER2	= 4,							// 越2级下限
+	ELST_UPPERMAX = 5,							// 越最大的有效值
+	ELST_LOWERMIN = 6,							// 越最小的有效值
+};
+// 越限信息存储包中专用的越限产生、恢复标志
+enum ENUM_LIMIT_RECOVER
+{
+	ELR_PRODUCT	= 1,							// 产生
+	ELR_RECOVER	= 2,							// 恢复
+};
+
+/***************************** 遥信状态值定义 *************************/ 
+// 所有的双遥信上送时都有故障，统一定义一个故障
+#define	SIGNAL_POS_FAULT			"故障"						// 故障
+
+// 遥信类型为“远方操作位置”
+#define	FAR_OPER_POS_FAR			"远方"						// 远方
+#define	FAR_OPER_POS_LOCAL			"就地"						// 就地
+
+// 遥信类型为"就地操作位置"
+#define	LOCAL_OPER_POS_FAR			"远方"						// 远方
+#define	LOCAL_OPER_POS_LOCAL		"就地"						// 就地
+
+// 遥信类型为“开关分合位置”
+#define	SWITCH_POS_OFF				"分位"						// 分位
+#define	SWITCH_POS_ON				"合位"						// 合位
+
+// 遥信类型为“手车工作位置”
+#define HAND_CART_POS_WORK			"工作位"						// 工作位
+#define HAND_CART_POS_TEST			"试验位"						// 试验位
+
+// 遥信类型为“开关重合闸投切”
+#define RECLOSER_SWITCH_ON			"投入"						// 投入
+#define RECLOSER_SWITCH_OFF			"退出"						// 退出
+
+// 遥信类型为“自投装置投切”
+#define AUTO_SWITCH_DEV_ON			"投入"						// 投入
+#define AUTO_SWITCH_DEV_OFF			"退出"						// 退出
+
+// 遥信类型为“软压板投切”
+#define SOFT_STRAP_ON				"投入"						// 投入
+#define SOFT_STRAP_OFF				"退出"						// 退出
+
+// 遥信类型为“接地位置”
+#define GROUND_POS_GROUND			"接地"						// 接地
+#define GROUND_POS_NOGROUND			"不接地"						// 不接地
+
+// 遥信类型为“档位数值位”
+#define GEAR_BIT_VAL_0				"零"							// 零
+#define GEAR_BIT_VAL_1				"壹"							// 壹
+
+// 遥信类型为“档位符号位”
+#define GEAR_BIT_SIGN_P				"正"							// 正
+#define GEAR_BIT_SIGN_N				"负"							// 负
+
+// 遥信类型为“保护”
+#define PROTECT_ACTION				"动作"						// 动作
+#define PROTECT_RESET				"复位"						// 复位
+
+// 遥信类型为“连接状态”
+#define LINK_STATE_NORMAL			"正常"						// 正常
+#define LINK_STATE_ABNORMAL			"异常"						// 异常
+
+
+// 值的“质量标志”数值表示的含义。遥信、遥测会用到。
+// 但是越限标志只有遥测用
+enum ENUM_QUALITY_FLAG_TYPE
+{
+	EQFT_LOCK						= 0,						// 人工设置：闭锁值
+	EQFT_HANDSET					= 1,						// 人工设置：手动置位值
+	EQFT_NORMAL						= 2,						// 实时值：正常值
+	EQFT_INVALID					= 3,						// 实时值：无效值
+	EQFT_ILLEGAL					= 4,						// 实时值：非法值
+	EQFT_UPPER_LIMIT1				= 5,						// 实时值：越一级上限值
+	EQFT_LOWER_LIMIT1				= 6,						// 实时值：越一级下限值
+	EQFT_UPPER_LIMIT2				= 7,						// 实时值：越二级上限值
+	EQFT_LOWER_LIMIT2				= 8,						// 实时值：越二级下限值
+};
+
+// 手动设置状态：设置类型
+enum ENUM_HAND_SET_TYPE
+{
+	EHST_INVALID					= 0,						// 无效的
+	EHST_LOCK_POINT					= 1,						// 遥信、遥测的闭锁（针对操控设备包含的点）
+	EHST_LOCK_OPERDEV				= 2,						// 遥控的闭锁（针对的是操控设备本身）
+	EHST_HANDSET_POINT				= 3,						// 遥信、遥测的手动置位（针对的操控设备包含的点）
+};
+
+// 分组类型
+enum ENUM_OBJ_GROUP_TYPE
+{
+	EOGT_NODEFINE					= 0,						// 未定义
+	EOGT_STA_GROUP					= 1,						// 车站分组
+};
+
+/***************************** 调度台模式使用 *************************/ 
+// 设备所属单位类型(控制终端使用的LocalDevice信息)
+enum ENUM_STATION_TYPE
+{
+	EST_STATION_TYPE_CENTER				= 1,					// 中心
+	EST_STATION_TYPE_STATION			= 2						// 车站
+};
+
+// 设备类型(控制终端使用的LocalDevice信息)
+enum ENUM_DEVICE_TYPE
+{
+	EDT_DEVICE_SERVER					= 1,					// 服务器
+	EDT_DEVICE_DISPATCHER				= 2,					// 调度台
+	EDT_DEVICE_OTHER					= 3						// 其他终端
+};
+
+// AB机标识
+enum ENUM_AB_FLAG
+{
+	EABF_A								= 0,					// A机
+	EABF_B								= 1,					// B机
+};
+
+// 调度模式
+enum ENUM_DISPATCHER_MODE
+{
+	EDM_DISPATCHMODE_UNKNOW				= 0,					// 未知模式
+	EDM_DISPATCHMODE_PARALELL			= 1,					// 双席并发（操作模式：操作+操作）
+	EDM_DISPATCHMODE_EXCLUDE			= 2,					// 双席互斥（操作模式：操作+监视、监视+监视）
+	EDM_DISPATCHMODE_PARAMONITOR		= 3,					// 双席并发监督（操作模式：操作+操作）
+	EDM_DISPATCHMODE_EXCLMONITOR		= 4						// 双席互斥监督（操作模式：操作+监视、监视+监视）
+};
+
+// 操作模式
+enum ENUM_OPERATION_MODE
+{
+	EOM_OPERMODE_UNKNOW					= 0,					// 未知操作模式
+	EOM_OPERMODE_OPER					= 1,					// 操作
+	EOM_OPERMODE_MONITOR				= 2						// 监视
+};
+
+// 调度台在线状态
+enum ENUM_DISPATCHER_STATUS
+{
+	EDS_DISPATCHER_OFFLINE				= 0,					// 调度台不在线（用户没登录就是不在线）
+	EDS_DISPATCHER_ONLINE				= 1,					// 调度台在线（用户已经登陆）
+};
+
+/******************************终端请求全体的相关宏定义********************************/
+// 终端请求全体的时间间隔（包括请求全体遥信、遥测、报警、操控设备状态、电显设备状态、故障报告、接口信息）
+#define TIME_INTERVAL_REQALL_TO_SVR		90						// 秒
+// 服务器判断终端请求全体的超时间隔（包括请求全体遥信、遥测、报警、操控设备状态、电显设备状态、故障报告、接口信息）
+#define TIME_INTERVAL_REQALL_TIMEOUT	200						// 秒
+
+// 故障测距节点类型
+enum ENUM_FAULTDISTANCE_POTTYPE
+{
+	EFDPT_POLE							= 1,					// 杆
+	EFDPT_SUBSTATION					= 2,					// 变电所上网点
+	EFDPT_PARTITION						= 3						// 分区所上网点
+};
+
+// 故障测距方向
+enum ENUM_FAULTDISTANCE_DIRECTION
+{
+	EFDD_FORWARD						= 1,					// 正向
+	EFDD_REVERSE						= 2						// 反向
+};
+
+//故障电量类型
+enum ENUM_FAULTDATA_TYPE
+{ 
+	EFDT_INVALID					= 0,						// 未定义   
+	EFDT_VALUE						= 1,						// 数值 
+	EFDT_POLYMORPHISM				= 2,						// 多态
+	EFDT_CTRL_WORD					= 3,						// 控制字   
+	EFDT_FAULTDISTANCE				= 4,						// 故障测距 
+	EFDT_HEX						= 5							// 16进制显示
+};
+
+// 遥测参数值类型
+enum ENUM_MEASURECONFIG_TYPE
+{
+	EMCT_NORMALIZE		= 1,		// 归一化值
+	EMCT_SCALE			= 2,		// 标度值
+	EMCT_SHORTFLOAT		= 3			// 短浮点数值
+};
+#endif		// _PUB_DEF_SYSTEM_INCLUDE_

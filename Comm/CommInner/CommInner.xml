@@ -1,0 +1,21 @@
+<!-- CommInner <内部数据转发服务> 的私有配置文件 -->
+<CommInner>
+	<Rsm>
+		<Server>
+			<ServerId>1</ServerId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Rsm_CommInner</UnixPath> 
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</Server>
+
+	</Rsm>
+
+</CommInner>

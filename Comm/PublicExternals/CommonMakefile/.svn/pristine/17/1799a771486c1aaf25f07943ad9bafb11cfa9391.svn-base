@@ -1,0 +1,17 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_basic
+
+DBWRAPLIBPATH = ../db_wrap
+
+
+ifeq ($(IS_AIX),1)
+	EXTRA_LIBS := $(LIB_DIR)/dbwraplib $(EXTRA_LIBS) ${ORACLE_HOME}/lib32/libclntsh.so /usr/lib/libuuid.so
+else
+	ifeq ($(IS_SRLIB),1)
+		EXTRA_LIBS := $(LIB_DIR)/dbwraplib $(EXTRA_LIBS) -L${ORACLE_HOME}/lib -L${ORACLE_HOME}/lib32 -L/usr/lib -luuid -lclntsh
+	else
+		EXTRA_LIBS := $(DBWRAPLIBPATH)/dbwraplib $(EXTRA_LIBS) -L${ORACLE_HOME}/lib -L${ORACLE_HOME}/lib32 -L/usr/lib -luuid -lclntsh
+	endif
+endif
+
+INCS := -I$(DBWRAPLIBPATH) $(INCS) -I${ORACLE_HOME}/rdbms/demo -I${ORACLE_HOME}/rdbms/public
+

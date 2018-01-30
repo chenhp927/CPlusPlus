@@ -1,0 +1,23 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_front
+
+XMLPATH= ../PublicExternals/TinyXml
+SYSLIBPATH = ../PublicExternals/SysLib
+TOOLPATH = ../PublicExternals/Tools
+COMMPATH = ../PublicExternals/CommLib
+PROTOCOLBASEPATH = ../PublicExternals/ProtocolBase
+APPBASEPATH = ../PublicExternals/AppLib
+
+
+ifeq ($(IS_SRLIB),1)
+EXTRA_LIBS := 	$(LIB_DIR)/AppLib $(LIB_DIR)/ProBaseLib $(LIB_DIR)/CommLib  \
+				$(LIB_DIR)/ToolLib $(LIB_DIR)/SysLib $(LIB_DIR)/TinyXmlLib \
+				$(EXTRA_LIBS) -ldl -luuid -lrt
+else
+EXTRA_LIBS := 	$(APPBASEPATH)/AppLib $(PROTOCOLBASEPATH)/ProBaseLib $(COMMPATH)/CommLib  \
+				$(TOOLPATH)/ToolLib $(SYSLIBPATH)/SysLib $(XMLPATH)/TinyXmlLib \
+				$(EXTRA_LIBS) -ldl -luuid -lrt
+endif
+
+
+INCS = -I$(XMLPATH) -I$(SYSLIBPATH) -I$(TOOLPATH) -I$(COMMPATH) -I$(PROTOCOLBASEPATH) \
+	-I$(APPBASEPATH)

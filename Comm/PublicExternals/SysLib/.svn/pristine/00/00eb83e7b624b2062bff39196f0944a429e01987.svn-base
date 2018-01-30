@@ -1,0 +1,1555 @@
+//==============================================================================
+//	
+//							 PubFuncSystem.cpp
+//							   
+//begin	  : 2016/09/17
+//describe: 系统公共函数定义
+//
+//==============================================================================
+
+#include "PubFuncSystem.h"
+
+//==============================================================================
+//
+//                   CPubFuncSystem
+//                 系统公共函数定义类
+//
+//==============================================================================
+
+CPubFuncSystem::CPubFuncSystem()
+{
+
+}
+
+CPubFuncSystem::~CPubFuncSystem()
+{
+
+}
+
+string CPubFuncSystem::ConStaTypeIdToName( ENUM_STA_TYPE eStaTypeId )
+{
+	string str = "";
+	switch (eStaTypeId)
+	{
+	case EST_INVALID:
+		str = "未定义";	
+		break;
+	case EST_TRAC_SUBSTA:
+		str = "牵引变电所";
+		break;
+	case EST_TRAC_SECSTA:
+		str = "牵引分区所";
+		break;
+	case EST_TRAC_SWITCHSTA:
+		str = "牵引开闭所";
+		break;
+	case EST_TRAC_SEC_SWITCHSTA:
+		str = "牵引分区所兼开闭所";
+		break;
+	case EST_TRAC_ATSTA:
+		str = "牵引AT所";
+		break;
+	case EST_CONN_SWITCH_CTRLSTA:
+		str = "接触网开关控制站";
+		break;
+	case EST_POW_SUBSTA:
+		str = "电力变配电所";
+		break;
+	case EST_POW_DISTRIBUTION:
+		str = "电力配电所";
+		break;
+	case EST_POW_BOX_TRANSFOR:
+		str = "电力箱变";
+		break;
+	case EST_POW_SWITCHSTA:
+		str = "电力开关站";
+		break;
+	case EST_POW_LOW_VOL_SUBSTA:
+		str = "10/0.4KV低压变电所";
+		break;
+	default:
+		break;
+	}
+
+	return str;	
+}
+
+ENUM_STA_TYPE CPubFuncSystem::ConStaTypeNameToId( std::string strStaTypeName )
+{
+	ENUM_STA_TYPE eStaType = EST_INVALID;
+	if (strStaTypeName == "未定义")
+	{
+		eStaType = EST_INVALID;		
+	}
+	else if (strStaTypeName == "牵引变电所")
+	{
+		eStaType = EST_TRAC_SUBSTA;
+	}
+	else if (strStaTypeName == "牵引分区所")
+	{
+		eStaType = EST_TRAC_SECSTA;
+	}
+	else if (strStaTypeName == "牵引开闭所")
+	{
+		eStaType = EST_TRAC_SWITCHSTA;
+	}
+	else if (strStaTypeName == "牵引分区所兼开闭所")
+	{
+		eStaType = EST_TRAC_SEC_SWITCHSTA;
+	}
+	else if (strStaTypeName == "牵引AT所")
+	{
+		eStaType = EST_TRAC_ATSTA;
+	}
+	else if (strStaTypeName == "接触网开关控制站")
+	{
+		eStaType = EST_CONN_SWITCH_CTRLSTA;
+	}
+	else if (strStaTypeName == "电力变配电所")
+	{
+		eStaType = EST_POW_SUBSTA;
+	}
+	else if (strStaTypeName == "电力配电所")
+	{
+		eStaType = EST_POW_DISTRIBUTION;
+	}
+	else if (strStaTypeName == "电力箱变")
+	{
+		eStaType = EST_POW_BOX_TRANSFOR;
+	}
+	else if (strStaTypeName == "电力开关站")
+	{
+		eStaType = EST_POW_SWITCHSTA;
+	}
+	else if (strStaTypeName == "10/0.4KV低压变电所")
+	{
+		eStaType = EST_POW_LOW_VOL_SUBSTA;
+	}
+
+	return eStaType;	
+}
+
+std::string CPubFuncSystem::ConAccArbIdToName(ENUM_ACCIDENT_SENTENCE eAccArbId)
+{
+	string str = "";
+	switch (eAccArbId)
+	{
+	case EAS_INVALID:
+		str = "未定义";
+		break;
+	case EAS_ACCIDENT_SIGNAL:
+		str = "按事故总遥信判定";
+		break;
+	case EAS_PROTECT_SIGNAL:
+		str = "按保护遥信判定";
+		break;
+	case EAS_ACCIDENT_PROTECT:
+		str = "按事故总遥信或保护遥信判定";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_ACCIDENT_SENTENCE CPubFuncSystem::ConAccArbNameToId(string strAccArbName)
+{
+	ENUM_ACCIDENT_SENTENCE eAccArb = EAS_INVALID;
+
+	if (strAccArbName == "未定义")
+	{
+		eAccArb = EAS_INVALID;
+	}
+	else if (strAccArbName == "按事故总遥信判定")
+	{
+		eAccArb = EAS_ACCIDENT_SIGNAL;
+	}
+	else if (strAccArbName == "按保护遥信判定")
+	{
+		eAccArb = EAS_PROTECT_SIGNAL;
+	}
+	else if (strAccArbName == "按事故总遥信或保护遥信判定")
+	{
+		eAccArb = EAS_ACCIDENT_PROTECT;
+	}
+
+	return eAccArb;
+}
+
+std::string CPubFuncSystem::ConFixTypeIdToName(ENUM_FIXVALUE_TYPE eFixTypeId)
+{
+	string str = "";
+	switch (eFixTypeId)
+	{
+	case EFT_INVALID:
+		str = "未定义";
+		break;
+	case EFT_VALUE:
+		str = "数值";
+		break;
+	case EFT_POLYMORPHISM:
+		str = "多态";
+		break;
+	case EFT_CTRL_WORD:
+		str = "控制字";
+		break;
+	case EFT_INT_VALUE:
+		str = "整型数值";
+		break;
+	case  EFT_TIME:
+		str = "时间";
+		break;
+	case  EFT_DATE:
+		str = "日期";
+		break;
+	case  EFT_HEX:
+		str = "16进制显示";
+		break;
+	case EFT_SEVENTIMEDATE:
+		str = "7字节日期时间";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_FIXVALUE_TYPE CPubFuncSystem::ConFixTypeNameToId(string strFixTypeName)
+{
+	ENUM_FIXVALUE_TYPE eFixType = EFT_INVALID;
+	if (strFixTypeName == "未定义")
+	{
+		eFixType = EFT_INVALID;
+	}
+	else if (strFixTypeName == "数值")
+	{
+		eFixType = EFT_VALUE;
+	}
+	else if(strFixTypeName == "多态")
+	{
+		eFixType = EFT_POLYMORPHISM;
+	}
+	else if (strFixTypeName == "控制字")
+	{
+		eFixType = EFT_CTRL_WORD;
+	}
+	else if (strFixTypeName == "整型数值")
+	{
+		eFixType = EFT_INT_VALUE;
+	}
+	else if (strFixTypeName == "时间")
+	{
+		eFixType = EFT_TIME;
+	}
+	else if (strFixTypeName == "日期")
+	{
+		eFixType = EFT_DATE;
+	}
+	else if (strFixTypeName == "16进制显示")
+	{
+		eFixType = EFT_HEX;
+	}
+	else if (strFixTypeName == "7字节日期时间")
+	{
+		eFixType = EFT_SEVENTIMEDATE;
+	}
+
+	return eFixType;
+}
+
+std::string CPubFuncSystem::ConChgRadioTypeIdToName(ENUM_TROUBLEPOW_TYPE eChgRadioTypeId)
+{
+	string str = "";
+	switch (eChgRadioTypeId)
+	{
+	case ETT_INVALID:
+		str = "未定义";
+		break;
+	case ETT_VOL:
+		str = "电压";
+		break;
+	case ETT_HIGHPPRESSIDE_VOL:
+		str = "高压侧电压";
+		break;
+	case ETT_LOWPRESSIDE_VOL:
+		str = "低压侧电压";
+		break;
+	case ETT_CUR:
+		str = "电流";
+		break;
+	case ETT_HIGHPRESSIDE_CUR:
+		str = "高压侧电流";
+		break;
+	case ETT_LOWPRESSIDE_CUR:
+		str = "低压侧电流";
+		break;
+	case ETT_REACTANCE:
+		str = "阻抗";
+		break;
+	case ETT_DIST:
+		str = "其他变比";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_TROUBLEPOW_TYPE CPubFuncSystem::ConChgRadioTypeNameToId(string strChgRadioTypeName)
+{
+	ENUM_TROUBLEPOW_TYPE eChgRadioType = ETT_INVALID;
+	if (strChgRadioTypeName == "未定义")
+	{
+		eChgRadioType = ETT_INVALID;
+	}
+	else if (strChgRadioTypeName == "电压")
+	{
+		eChgRadioType = ETT_VOL;
+	}
+	else if (strChgRadioTypeName == "高压侧电压")
+	{
+		eChgRadioType = ETT_HIGHPPRESSIDE_VOL;
+	}
+	else if (strChgRadioTypeName == "低压侧电压")
+	{
+		eChgRadioType = ETT_LOWPRESSIDE_VOL;
+	}
+	else if (strChgRadioTypeName == "电流")
+	{
+		eChgRadioType = ETT_CUR;
+	}
+	else if (strChgRadioTypeName == "高压侧电流")
+	{
+		eChgRadioType = ETT_HIGHPRESSIDE_CUR;
+	}
+	else if(strChgRadioTypeName == "低压侧电流")
+	{
+		eChgRadioType = ETT_LOWPRESSIDE_CUR;
+	}
+	else if (strChgRadioTypeName == "阻抗")
+	{
+		eChgRadioType = ETT_REACTANCE;
+	}
+	else if (strChgRadioTypeName == "其他变比")
+	{
+		eChgRadioType = ETT_DIST;
+	}
+
+	return eChgRadioType;
+}
+
+std::string CPubFuncSystem::ConSignalTypeIdToName(ENUM_CTRLSIGNAL_TYPE eSignalTypeId)
+{
+	string str = "";
+	switch (eSignalTypeId)
+	{
+	case ECT_INVALID:
+		str = "未定义";
+		break;
+	case ECT_FAR_OPER_POS:
+		str = "远方操作位置";
+		break;
+	case ECT_LOCAL_OPER_POS:
+		str = "就地操作位置";
+		break;
+	case ECT_SWITCH_POS:
+		str = "开关分合位置";
+		break;
+	case ECT_RECLOSER_SWITCH:
+		str = "开关重合闸投切";
+		break;
+	case ECT_HAND_CART_POS:
+		str = "手车工作位置";
+		break;
+	case ECT_AUTO_SWITCH_DEV:
+		str = "自投装置投切";
+		break;
+	case ECT_SOFT_STRAP:
+		str = "软压板投切";
+		break;
+	case ECT_GROUND_POS:
+		str = "接地位置";
+		break;
+	case ECT_UPSHIFT:
+		str = "遥调升档";
+		break;
+	case ECT_DOWNSHIFT:
+		str = "遥调降档";
+		break;
+	case ECT_SHIFT:
+		str = "遥调调档";
+		break;
+	case ECT_INVOLUTION:
+		str = "复归";
+		break;
+	case ECT_GEAR_VAL:
+		str = "档位数值位";
+		break;
+	case ECT_GEAR_SIGN:
+		str = "档位符号位";
+		break;
+	case ECT_PROTECT:
+		str = "保护";
+		break;
+	case ECT_LINK_STATE:
+		str = "连接状态";
+		break;
+	case ECT_BACKUPON_INVOLUTION:
+		str = "自投复归";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_CTRLSIGNAL_TYPE CPubFuncSystem::ConSignalTypeNameToId(string strSignalType)
+{
+	ENUM_CTRLSIGNAL_TYPE eSignalType = ECT_INVALID;
+	if (strSignalType == "未定义")
+	{
+		eSignalType = ECT_INVALID;
+	}
+	else if (strSignalType == "远方操作位置")
+	{
+		eSignalType = ECT_FAR_OPER_POS;
+	}
+	else if (strSignalType == "就地操作位置")
+	{
+		eSignalType = ECT_LOCAL_OPER_POS;
+	}
+	else if(strSignalType == "开关分合位置")
+	{
+		eSignalType = ECT_SWITCH_POS;
+	}
+	else if (strSignalType == "开关重合闸投切")
+	{
+		eSignalType = ECT_RECLOSER_SWITCH;
+	}
+	else if (strSignalType == "手车工作位置")
+	{
+		eSignalType = ECT_HAND_CART_POS;
+	}
+	else if (strSignalType == "自投装置投切")
+	{
+		eSignalType = ECT_AUTO_SWITCH_DEV;
+	}
+	else if (strSignalType == "软压板投切")
+	{
+		eSignalType = ECT_SOFT_STRAP;
+	}
+	else if (strSignalType == "接地位置")
+	{
+		eSignalType = ECT_GROUND_POS;
+	}
+	else if (strSignalType == "遥调升档")
+	{
+		eSignalType = ECT_UPSHIFT;
+	}
+	else if (strSignalType == "遥调降档")
+	{
+		eSignalType = ECT_DOWNSHIFT;
+	}
+	else if (strSignalType == "遥调调档")
+	{
+		eSignalType = ECT_SHIFT;
+	}
+	else if (strSignalType == "复归")
+	{
+		eSignalType = ECT_INVOLUTION;
+	}
+	else if (strSignalType == "档位数值位")
+	{
+		eSignalType = ECT_GEAR_VAL;
+	}
+	else if (strSignalType == "档位符号位")
+	{
+		eSignalType = ECT_GEAR_SIGN;
+	}
+	else if (strSignalType == "保护")
+	{
+		eSignalType = ECT_PROTECT;
+	}
+	else if (strSignalType == "连接状态")
+	{
+		eSignalType = ECT_LINK_STATE;
+	}
+	else if (strSignalType == "自投复归")
+	{
+		eSignalType = ECT_BACKUPON_INVOLUTION;
+	}
+
+	return eSignalType;
+}
+
+std::string CPubFuncSystem::ConCtrlTypeIdToName(ENUM_CTRLSIGNAL_TYPE eCtrlTypeId)
+{
+	return ConSignalTypeIdToName(eCtrlTypeId);
+}
+
+ENUM_CTRLSIGNAL_TYPE CPubFuncSystem::ConCtrlTypeNameToId(string strCtrlType)
+{
+	return ConSignalTypeNameToId(strCtrlType);
+}
+
+std::string CPubFuncSystem::ConAlmTypeIdToName(ENUM_ALARM_TYPE eAlmTypeId)
+{
+	string str = "";
+	switch (eAlmTypeId)
+	{
+	case EAT_INVALID:
+		str = "未定义";
+		break;
+	case EAT_NO_ALARM:
+		str = "不报警";
+		break;
+	case EAT_ACCIDENT:
+		str = "事故";
+		break;
+	case EAT_PROTECT:
+		str = "保护";
+		break;
+	case EAT_SWITCH_ACT:
+		str = "开关动作";
+		break;
+	case EAT_SWITCH_NON_TELECTRLOFF:
+		str = "开关动作（非远动分）";
+		break;
+	case EAT_SWITCH_NON_TELECTRLON:
+		str = "开关动作（非远动合）";
+		break;
+	case EAT_SWITCH_UNCERTAIN_STATE:
+		str = "开关不定态";
+		break;
+	case EAT_CABINET_LEAK:
+		str = "开关柜漏气";
+		break;
+	case EAT_AUTO_DEV_ACT:
+		str = "自动装置动作";
+		break;
+	case EAT_FORENOTICE:
+		str = "预告";
+		break;
+	case EAT_CUR_LIMIT:
+		str = "电流越限";
+		break;
+	case EAT_CUR_LIMIT1:
+		str = "电流越限1级";
+		break;
+	case EAT_CUR_LIMIT2:
+		str = "电流越限2级";
+		break;
+	case EAT_VOL_LIMIT:
+		str = "电压越限";
+		break;
+	case EAT_VOL_LIMIT1:
+		str = "电压越限1级";
+		break;
+	case EAT_VOL_LIMIT2:
+		str = "电压越限2级";
+		break;
+	case EAT_INTEL_DEV_FAILURE:
+		str = "智能装置故障";
+		break;
+	case EAT_INTEL_DEV_ALARM:
+		str = "智能装置告警";
+		break;
+	case EAT_ACDC_SCREEN_FAULT:
+		str = "交直流屏故障";
+		break;
+	case EAT_ACDC_SCREEN_ALARM:
+		str = "交直流屏告警";
+		break;
+	case EAT_SAFE_SUP_ACCIDENT:
+		str = "安监事故";
+		break;
+	case EAT_SAFE_SUP_ALARM:
+		str = "安监告警";
+		break;
+	case EAT_ENV_MON_ALARM:
+		str = "环境监测告警";
+		break;
+	case EAT_STA_COMM_STATE:
+		str = "站通讯状态";
+		break;
+	case EAT_STA_COMM_CH:
+		str = "站通讯单通道状态";
+		break;
+	case EAT_STA_COMM_CH_SW:
+		str = "站通讯通道切换";
+		break;
+	case EAT_OTHER_ALARM:
+		str = "其他告警";
+		break;		
+	case EAT_SWITCH_ACT_TELECTRLOFF:
+		str = "开关动作（远动操作分）";
+		break;
+	case EAT_SWITCH_ACT_TELECTRLON:
+		str = "开关动作（远动操作合）";
+		break;
+	case EAT_GEAR_INFO:
+		str = "档位信息";
+		break;
+	case EAT_SOE_EVENT:
+		str = "SOE事件";
+		break;
+	case EAT_FAR_LOCAL_CHG_EVENT:
+		str = "控制方式事件";
+		break;
+	case EAT_OTHER_EVENT:
+		str = "其他事件";
+		break;
+	case EAT_SINGLE_CTRL:
+		str = "单控";
+		break;
+	case EAT_PROGRAM_CTRL:
+		str = "程控";
+		break;
+	case EAT_INVOLUTION:
+		str = "复归";
+		break;
+	case EAT_REGULATE:
+		str = "遥调";
+		break;
+	case EAT_TUNE:
+		str = "整定";
+		break;
+	case EAT_PARAMETERS_SET:
+		str = "参数设置";
+		break;
+	case EAT_HAND_SET:
+		str = "手工置位";
+		break;
+	case EAT_QUOTE:
+		str = "挂牌";
+		break;
+	case EAT_BLOCK:
+		str = "闭锁";
+		break;
+	case EAT_LOG_ON_OFF:
+		str = "登陆注销";
+		break;
+	case EAT_USER_MGR:
+		str = "用户管理";
+		break;
+	case EAT_OTHER_OPER:
+		str = "其他操作记录";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_ALARM_TYPE CPubFuncSystem::ConAlmTypeNameToId(string strAlmType)
+{
+	ENUM_ALARM_TYPE eAlmType = EAT_INVALID;
+
+	if (strAlmType == "未定义")
+	{
+		eAlmType = EAT_INVALID;
+	}
+	else if (strAlmType == "不报警")
+	{
+		eAlmType = EAT_NO_ALARM;
+	}
+	else if (strAlmType == "事故")
+	{
+		eAlmType = EAT_ACCIDENT;
+	}
+	else if (strAlmType == "保护")
+	{
+		eAlmType = EAT_PROTECT;
+	}
+	else if (strAlmType == "开关动作")
+	{
+		eAlmType = EAT_SWITCH_ACT;
+	}
+	else if (strAlmType == "开关动作（非远动分）")
+	{
+		eAlmType = EAT_SWITCH_NON_TELECTRLOFF;
+	}
+	else if (strAlmType == "开关动作（非远动合）")
+	{
+		eAlmType = EAT_SWITCH_NON_TELECTRLON;
+	}
+	else if (strAlmType == "开关不定态")
+	{
+		eAlmType = EAT_SWITCH_UNCERTAIN_STATE;
+	}
+	else if (strAlmType == "开关柜漏气")
+	{
+		eAlmType = EAT_CABINET_LEAK;
+	}
+	else if (strAlmType == "自动装置动作")
+	{
+		eAlmType = EAT_AUTO_DEV_ACT;
+	}
+	else if (strAlmType == "预告")
+	{
+		eAlmType = EAT_FORENOTICE;
+	}
+	else if (strAlmType == "电流越限")
+	{
+		eAlmType = EAT_CUR_LIMIT;
+	}
+	else if (strAlmType == "电流越限1级")
+	{
+		eAlmType = EAT_CUR_LIMIT1;
+	}
+	else if (strAlmType == "电流越限2级")
+	{
+		eAlmType = EAT_CUR_LIMIT2;
+	}
+	else if (strAlmType == "电压越限")
+	{
+		eAlmType = EAT_VOL_LIMIT;
+	}
+	else if (strAlmType == "电压越限1级")
+	{
+		eAlmType = EAT_VOL_LIMIT1;
+	}
+	else if (strAlmType == "电压越限2级")
+	{
+		eAlmType = EAT_VOL_LIMIT2;
+	}
+	else if (strAlmType == "智能装置故障")
+	{
+		eAlmType = EAT_INTEL_DEV_FAILURE;
+	}
+	else if (strAlmType == "智能装置告警")
+	{
+		eAlmType = EAT_INTEL_DEV_ALARM;
+	}
+	else if (strAlmType == "交直流屏故障")
+	{
+		eAlmType = EAT_ACDC_SCREEN_FAULT;
+	}
+	else if (strAlmType == "交直流屏告警")
+	{
+		eAlmType = EAT_ACDC_SCREEN_ALARM;
+	}
+	else if (strAlmType == "安监事故")
+	{
+		eAlmType = EAT_SAFE_SUP_ACCIDENT;
+	}
+	else if(strAlmType == "安监告警")
+	{
+		eAlmType = EAT_SAFE_SUP_ALARM;
+	}
+	else if (strAlmType == "环境监测告警")
+	{
+		eAlmType = EAT_ENV_MON_ALARM;
+	}
+	else if (strAlmType == "站通讯状态")
+	{
+		eAlmType = EAT_STA_COMM_STATE;
+	}
+	else if (strAlmType == "站通讯单通道状态")
+	{
+		eAlmType = EAT_STA_COMM_CH;
+	}
+	else if (strAlmType == "站通讯通道切换")
+	{
+		eAlmType = EAT_STA_COMM_CH_SW;
+	}
+	else if (strAlmType == "其他告警")
+	{
+		eAlmType = EAT_OTHER_ALARM;
+	}
+	else if (strAlmType == "开关动作（远动操作分）")
+	{
+		eAlmType = EAT_SWITCH_ACT_TELECTRLOFF;
+	}
+	else if (strAlmType == "开关动作（远动操作合）")
+	{
+		eAlmType = EAT_SWITCH_ACT_TELECTRLON;
+	}
+	else if (strAlmType == "档位信息")
+	{
+		eAlmType = EAT_GEAR_INFO;
+	}
+	else if (strAlmType == "SOE事件")
+	{
+		eAlmType = EAT_SOE_EVENT;
+	}
+	else if (strAlmType == "控制方式事件")
+	{
+		eAlmType = EAT_FAR_LOCAL_CHG_EVENT;
+	}
+	else if (strAlmType == "其他事件")
+	{
+		eAlmType = EAT_OTHER_EVENT;
+	}
+	else if (strAlmType == "单控")
+	{
+		eAlmType = EAT_SINGLE_CTRL;
+	}
+	else if (strAlmType == "程控")
+	{
+		eAlmType = EAT_PROGRAM_CTRL;
+	}
+	else if (strAlmType == "复归")
+	{
+		eAlmType = EAT_INVOLUTION;
+	}
+	else if (strAlmType == "遥调")
+	{
+		eAlmType = EAT_REGULATE;
+	}
+	else if (strAlmType == "整定")
+	{
+		eAlmType = EAT_TUNE;
+	}
+	else if (strAlmType == "参数设置")
+	{
+		eAlmType = EAT_PARAMETERS_SET;
+	}
+	else if (strAlmType == "手工置位")
+	{
+		eAlmType = EAT_HAND_SET;
+	}
+	else if (strAlmType == "挂牌")
+	{
+		eAlmType = EAT_QUOTE;
+	}
+	else if (strAlmType == "闭锁")
+	{
+		eAlmType = EAT_BLOCK;
+	}
+	else if (strAlmType == "登陆注销")
+	{
+		eAlmType = EAT_LOG_ON_OFF;
+	}
+	else if (strAlmType == "用户管理")
+	{
+		eAlmType = EAT_USER_MGR;
+	}
+	else if(strAlmType ==  "其他操作记录")
+	{
+		eAlmType = EAT_OTHER_OPER;
+	}
+
+	return eAlmType;
+}
+
+bool CPubFuncSystem::IsAlarmEvtTypeEvt(ENUM_ALARM_TYPE eType)
+{
+	switch (eType)
+	{
+	case EAT_NO_ALARM:
+	case EAT_ACCIDENT:
+	case EAT_PROTECT:
+	case EAT_SWITCH_ACT:
+	case EAT_SWITCH_NON_TELECTRLOFF:
+	case EAT_SWITCH_NON_TELECTRLON:
+	case EAT_SWITCH_UNCERTAIN_STATE:
+	case EAT_CABINET_LEAK:
+	case EAT_AUTO_DEV_ACT:
+	case EAT_FORENOTICE:
+	case EAT_CUR_LIMIT:
+	case EAT_CUR_LIMIT1:
+	case EAT_CUR_LIMIT2:
+	case EAT_VOL_LIMIT:
+	case EAT_VOL_LIMIT1:
+	case EAT_VOL_LIMIT2:
+	case EAT_INTEL_DEV_FAILURE:
+	case EAT_INTEL_DEV_ALARM:
+	case EAT_ACDC_SCREEN_FAULT:
+	case EAT_ACDC_SCREEN_ALARM:
+	case EAT_SAFE_SUP_ACCIDENT:
+	case EAT_SAFE_SUP_ALARM:
+	case EAT_ENV_MON_ALARM:
+	case EAT_STA_COMM_STATE:
+	case EAT_STA_COMM_CH:
+	case EAT_STA_COMM_CH_SW:
+	case EAT_OTHER_ALARM:
+		return false;
+	default:
+		return true;
+	}
+
+	return false;
+}
+
+std::string CPubFuncSystem::ConMeasureTypeIdToName(ENUM_MEASURE_TYPE eMeasureTypeId)
+{
+	string  str = "";
+	switch (eMeasureTypeId)
+	{
+	case EMT_INVALID:
+		str = "未定义";
+		break;
+	case EMT_I:
+		str = "I";
+		break;
+	case EMT_Ia:
+		str = "Ia";
+		break;
+	case EMT_Ib:
+		str = "Ib";
+		break;
+	case EMT_Ic:
+		str = "Ic";
+		break;
+	case EMT_U:
+		str = "U";
+		break;
+	case EMT_Ua:
+		str = "Ua";
+		break;
+	case EMT_Ub:
+		str = "Ub";
+		break;
+	case EMT_Uc:
+		str = "Uc";
+		break;
+	case EMT_Uab:
+		str = "Uab";
+		break;
+	case EMT_Ubc:
+		str = "Ubc";
+		break;
+	case EMT_Uca:
+		str = "Uca";
+		break;
+	case EMT_Gear:
+		str = "Gear";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_MEASURE_TYPE CPubFuncSystem::ConMeasureTypeNameToId(string strMeasureType)
+{
+	ENUM_MEASURE_TYPE eMeasureType = EMT_INVALID;
+	if (strMeasureType == "未定义")
+	{
+		eMeasureType = EMT_INVALID;
+	}
+	else if (strMeasureType == "I")
+	{
+		eMeasureType = EMT_I;
+	}
+	else if (strMeasureType == "Ia")
+	{
+		eMeasureType = EMT_Ia;
+	}
+	else if (strMeasureType == "Ib")
+	{
+		eMeasureType = EMT_Ib;
+	}
+	else if (strMeasureType == "Ic")
+	{
+		eMeasureType = EMT_Ic;
+	}
+	else if (strMeasureType == "U")
+	{
+		eMeasureType = EMT_U;
+	}
+	else if (strMeasureType == "Ua")
+	{
+		eMeasureType = EMT_Ua;
+	}
+	else if (strMeasureType == "Ub")
+	{
+		eMeasureType = EMT_Ub;
+	}
+	else if (strMeasureType == "Uc")
+	{
+		eMeasureType = EMT_Uc;
+	}
+	else if (strMeasureType == "Uab")
+	{
+		eMeasureType = EMT_Uab;
+	}
+	else if (strMeasureType == "Ubc")
+	{
+		eMeasureType = EMT_Ubc;
+	}
+	else if (strMeasureType == "Uca")
+	{
+		eMeasureType = EMT_Uca;
+	}
+	else if (strMeasureType == "Gear")
+	{
+		eMeasureType = EMT_Gear;
+	}
+
+	return eMeasureType;
+}
+
+std::string CPubFuncSystem::ConVGradeIdToName(ENUM_VOL_RATE eVCLevelId)
+{
+	string str = "";
+	switch (eVCLevelId)
+	{
+	case EVCR_INVALID:
+		str = "未定义";
+		break;
+	case EVCR_AC220V:
+		str = "AC220V";
+		break;
+	case EVCR_AC400V:
+		str = "AC400V";
+		break;
+	case EVCR_AC35kV:
+		str = "AC35kV";
+		break;
+	case EVCR_AC10kV:
+		str = "AC10kV";
+		break;
+	case EVCR_AC220kV:
+		str = "AC220kV";
+		break;
+	case EVCR_AC110kV:
+		str = "AC110kV";
+		break;
+	case EVCR_AC27_5kVA:
+		str = "AC27.5kVA";
+		break;
+	case EVCR_AC27_5kVB:
+		str = "AC27.5kVB";
+		break;
+	case EVCR_DC110V:
+		str = "DC110V";
+		break;
+	case EVCR_DC220V:
+		str = "DC220V";
+		break;
+	case EVCR_AC6KV:
+		str = "AC6KV";
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_VOL_RATE CPubFuncSystem::ConVGradeNameToId(string strVCLevelType)
+{
+	ENUM_VOL_RATE eVCLevel = EVCR_INVALID;
+	if (strVCLevelType == "未定义")
+	{
+		eVCLevel = EVCR_INVALID;
+	}
+	else if (strVCLevelType == "AC220V")
+	{
+		eVCLevel = EVCR_AC220V;
+	}
+	else if (strVCLevelType == "AC400V")
+	{
+		eVCLevel = EVCR_AC400V;
+	}
+	else if (strVCLevelType == "AC35kV")
+	{
+		eVCLevel = EVCR_AC35kV;
+	}
+	else if (strVCLevelType == "AC10kV")
+	{
+		eVCLevel = EVCR_AC10kV;
+	}
+	else if (strVCLevelType == "AC220kV")
+	{
+		eVCLevel = EVCR_AC220kV;
+	}
+	else if (strVCLevelType == "AC110kV")
+	{
+		eVCLevel = EVCR_AC110kV;
+	}
+	else if (strVCLevelType == "AC27.5kVA")
+	{
+		eVCLevel = EVCR_AC27_5kVA;
+	}
+	else if (strVCLevelType == "AC27.5kVB")
+	{
+		eVCLevel = EVCR_AC27_5kVB;
+	}
+	else if (strVCLevelType == "DC110V" )
+	{
+		eVCLevel = EVCR_DC110V;
+	}
+	else if (strVCLevelType == "DC220V")
+	{
+		eVCLevel = EVCR_DC220V;
+	}
+	else if (strVCLevelType == "AC6KV")
+	{
+		eVCLevel = EVCR_AC6KV;
+	}
+	return eVCLevel;
+}
+
+std::string CPubFuncSystem::ConDiskTypeIdToName(ENUM_HISSAVE_TYPE eDiskTypeId)
+{
+	string str = "";
+	switch (eDiskTypeId)
+	{
+	case EHT_INVALID:
+		str = "未定义";
+		break;
+	case EHT_NO_SAVE:
+		str = "不存储";
+		break;
+	case EHT_REAL_SAVE:
+		str = "实时存储";
+		break;
+	case EHT_PERIOD_SAVE_30:
+		str = "30秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_60:
+		str = "60秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_90:
+		str = "90秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_120:
+		str = "120秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_180:
+		str = "180秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_300:
+		str = "300秒周期存储";
+		break;
+	case EHT_PERIOD_SAVE_600:
+		str = "600秒周期存储";
+		break;
+	default:
+		str = "未定义";
+		break;
+	}	
+
+	return str;
+}
+
+ENUM_HISSAVE_TYPE CPubFuncSystem::ConDiskTypeNameToId(string strDiskType)
+{
+	ENUM_HISSAVE_TYPE eDiskType = EHT_INVALID;
+	if (strDiskType == "未定义")
+	{
+		eDiskType = EHT_INVALID;
+	}
+	else if (strDiskType == "不存储")
+	{
+		eDiskType = EHT_NO_SAVE;
+	}
+	else if (strDiskType == "实时存储")
+	{
+		eDiskType = EHT_REAL_SAVE;
+	}
+	else if (strDiskType == "30秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_30;
+	}
+	else if (strDiskType == "60秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_60;
+	}
+	else if (strDiskType == "90秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_90;
+	}
+	else if (strDiskType == "120秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_120;
+	}
+	else if (strDiskType == "180秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_180;
+	}
+	else if (strDiskType == "300秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_300;
+	}
+	else if (strDiskType == "600秒周期存储")
+	{
+		eDiskType = EHT_PERIOD_SAVE_600;
+	}
+
+	return eDiskType;
+}
+
+DWORD CPubFuncSystem::ConDiskTypeIdToTime(ENUM_HISSAVE_TYPE eDiskType)
+{
+	DWORD dwTime = EHT_PERIOD_TIME_INVALID;
+	switch (eDiskType)
+	{
+	case EHT_REAL_SAVE:
+		dwTime = EHT_PERIOD_TIME_REAL;
+		break;
+	case EHT_PERIOD_SAVE_30:
+		dwTime = 30;
+			break;
+	case EHT_PERIOD_SAVE_60:
+		dwTime = 60;
+			break;
+	case EHT_PERIOD_SAVE_90:
+		dwTime = 90;
+			break;
+	case EHT_PERIOD_SAVE_120:
+		dwTime = 120;
+			break;
+	case EHT_PERIOD_SAVE_180:
+		dwTime = 180;
+			break;
+	case EHT_PERIOD_SAVE_300:
+		dwTime = 300;
+			break;
+	case EHT_PERIOD_SAVE_600:
+		dwTime = 600;
+		break;
+	case EHT_INVALID:
+	case EHT_NO_SAVE:
+	default:
+		dwTime = EHT_PERIOD_TIME_INVALID;
+		break;
+	}
+
+	return dwTime;
+}
+
+std::string CPubFuncSystem::ConReportTypeIdToName(ENUM_FAULTREPORT_TYPE eReportTypeId)
+{
+	string str = "";
+	switch (eReportTypeId)
+	{
+	case EFAT_INVALID:
+		str = "未定义";
+		break;
+	case EFAT_RECLOSURE:
+		str = "重合闸";
+		break;
+	case EFAT_LINE_FAULT:
+		str = "线路故障";
+		break;
+	case EFAT_WITHDISTANCE:
+		str = "带公里标";
+		break;
+	default:
+		str = "未定义";
+		break;
+	}
+
+	return str;
+}
+
+ENUM_FAULTREPORT_TYPE CPubFuncSystem::ConReportTypeNameToId(string strReportType)
+{
+	ENUM_FAULTREPORT_TYPE eReportType = EFAT_INVALID;
+	if (strReportType == "未定义")
+	{
+		eReportType = EFAT_INVALID;
+	}
+	else if (strReportType == "重合闸")
+	{
+		eReportType = EFAT_RECLOSURE;
+	}
+	else if (strReportType == "线路故障")
+	{
+		eReportType = EFAT_LINE_FAULT;
+	}
+	else if (strReportType == "带公里标")
+	{
+		eReportType = EFAT_WITHDISTANCE;
+	}
+
+	return eReportType;
+
+}
+
+ENUM_POWERSUPPLY_TYPE CPubFuncSystem::ConStaTypeIdToPowerSupplyTypeId( ENUM_STA_TYPE eStaTypeId )
+{
+	ENUM_POWERSUPPLY_TYPE ePowerSupplyType = EPST_INVALID;
+	switch (eStaTypeId)
+	{
+	case EST_INVALID:
+		ePowerSupplyType = EPST_INVALID;
+		break;
+	case EST_TRAC_SUBSTA:
+	case EST_TRAC_SECSTA:
+	case EST_TRAC_SWITCHSTA:
+	case EST_TRAC_SEC_SWITCHSTA:
+	case EST_TRAC_ATSTA:
+	case EST_CONN_SWITCH_CTRLSTA:
+		ePowerSupplyType = EPST_TRAC;
+		break;
+	case EST_POW_SUBSTA:
+	case EST_POW_DISTRIBUTION:
+	case EST_POW_BOX_TRANSFOR:
+	case EST_POW_SWITCHSTA:
+	case EST_POW_LOW_VOL_SUBSTA:
+		ePowerSupplyType = EPST_POW;
+		break;
+	default:
+		break;
+	}
+
+	return ePowerSupplyType;	
+}
+
+std::string CPubFuncSystem::ConPowerSupplyTypeIdToName(ENUM_POWERSUPPLY_TYPE ePowerSupplyTypeId)
+{
+	string str = "";
+	switch (ePowerSupplyTypeId)
+	{
+	case EPST_INVALID:
+		str = "未定义";
+		break;
+	case EPST_TRAC:
+		str = "牵引";
+		break;
+	case EPST_POW:
+		str = "电力";
+		break;
+	default:
+		break;
+	}
+
+	return str;	
+}
+
+std::string CPubFuncSystem::ConOperDevTypeIdToName(ENUM_OPERDEV_TYPE eOperDevTypeId)
+{
+	string str = "";
+	switch (eOperDevTypeId)
+	{
+	case EOT_INVALID:
+		str = "未定义";
+		break;
+	case EOT_CIRCUIT_BREAK:
+		str = "断路器";
+		break;
+	case EOT_MANUAL_SWITCH:
+		str = "手动隔离开关";
+		break;
+	case EOT_AUTO_SWITCH:
+		str = "电动隔离开关";
+		break;
+	case EOT_GROUND_SWITCH:
+		str = "三工位电动隔离开关";
+		break;
+	case EOT_GND_SW_MANUAL:
+		str = "三工位手动隔离开关";
+		break;
+	case EOT_LOAD_SWITCH:
+		str = "负荷开关";
+		break;
+	case EOT_HAND_CART:
+		str = "手车";
+		break;
+	case EOT_RECLOSURE:
+		str = "重合闸";
+		break;
+	case EOT_BACKUPON:
+		str = "备自投";
+		break;
+	case EOT_SOFT_STRAP:
+		str = "软压板";
+		break;
+	case EOT_CURTRANS:
+		str = "流互";
+		break;
+	case EOT_VOLTRANS:
+		str = "压互";
+		break;
+	case EOT_STATION:
+		str = "站设备";
+		break;
+	case EOT_DEVICE:
+		str = "装置设备";
+		break;
+	case EOT_PARTITION:
+		str = "间隔";
+		break;
+	case EOT_REGULATOR:
+		str = "调节器";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+std::string CPubFuncSystem::ConFaultDistancePotTypeIdToName(ENUM_FAULTDISTANCE_POTTYPE eFaultDistancePotTypeId)
+{
+	string str = "";
+	switch (eFaultDistancePotTypeId)
+	{
+	case EFDPT_POLE:
+		str = "杆";
+		break;
+	case EFDPT_SUBSTATION:
+		str = "变电所上网点";
+		break;
+	case  EFDPT_PARTITION:
+		str = "分区所上网点";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_FAULTDISTANCE_POTTYPE CPubFuncSystem::ConFaultDistancePotTypeNameToId(string strFaultDistancePotType)
+{
+	ENUM_FAULTDISTANCE_POTTYPE eFaultDistancePotType = EFDPT_POLE;
+	if (strFaultDistancePotType == "杆")
+	{
+		eFaultDistancePotType = EFDPT_POLE;
+	}
+	else if (strFaultDistancePotType == "变电所上网点")
+	{
+		eFaultDistancePotType = EFDPT_SUBSTATION;
+	}
+	else if (strFaultDistancePotType == "分区所上网点")
+	{
+		eFaultDistancePotType = EFDPT_PARTITION;
+	}
+
+	return eFaultDistancePotType;
+}
+
+std::string CPubFuncSystem::ConFaultDistanceDirectionIdToName(ENUM_FAULTDISTANCE_DIRECTION eFaultDistanceDirectionId)
+{
+	string str = "";
+	switch (eFaultDistanceDirectionId)
+	{
+	case EFDD_FORWARD:
+		str = "正向";
+		break;
+	case EFDD_REVERSE:
+		str = "反向";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_FAULTDISTANCE_DIRECTION CPubFuncSystem::ConFaultDistanceDirectionNameToId(string strFaultDistanceDirection)
+{
+	ENUM_FAULTDISTANCE_DIRECTION eFaultDistanceDirection = EFDD_FORWARD;
+	if (strFaultDistanceDirection == "正向")
+	{
+		eFaultDistanceDirection = EFDD_FORWARD;
+	}
+	else if (strFaultDistanceDirection == "反向")
+	{
+		eFaultDistanceDirection = EFDD_REVERSE;
+	}
+
+	return eFaultDistanceDirection;
+}
+
+std::string CPubFuncSystem::ConDataTypeIdToName(ENUM_FAULTDATA_TYPE eDataTypeId)
+{
+	string str = "";
+	switch (eDataTypeId)
+	{
+	case EFDT_INVALID:
+		str = "未定义";
+		break;
+	case EFDT_VALUE:
+		str = "数值";
+		break;
+	case EFDT_POLYMORPHISM:
+		str = "多态";
+		break;
+	case EFDT_CTRL_WORD:
+		str = "控制字";
+		break;
+	case EFDT_FAULTDISTANCE:
+		str = "故障测距";
+		break;
+	case EFDT_HEX:
+		str = "16进制显示";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_FAULTDATA_TYPE CPubFuncSystem::ConDataTypeNameToId(string strDataType)
+{
+	ENUM_FAULTDATA_TYPE eDataTypeId = EFDT_INVALID;
+	if (strDataType == "未定义")
+	{
+		eDataTypeId = EFDT_INVALID;
+	}
+	else if (strDataType == "数值")
+	{
+		eDataTypeId = EFDT_VALUE;
+	}
+	else if (strDataType == "多态")
+	{
+		eDataTypeId = EFDT_POLYMORPHISM;
+	}
+	else if (strDataType == "控制字")
+	{
+		eDataTypeId = EFDT_CTRL_WORD;
+	}
+	else if (strDataType == "故障测距")
+	{
+		eDataTypeId = EFDT_FAULTDISTANCE;
+	}
+	else if (strDataType == "16进制显示")
+	{
+		eDataTypeId = EFDT_HEX;
+	}	
+
+	return eDataTypeId;
+}
+
+std::string CPubFuncSystem::ConMeasureConfigTypeIdToName(ENUM_MEASURECONFIG_TYPE eMeasureConfigType)
+{
+	string str = "";
+	switch (eMeasureConfigType)
+	{
+	case EMCT_NORMALIZE:
+		str = "归一化值";
+		break;
+	case EMCT_SCALE:
+		str = "标度值";
+		break;
+	case EMCT_SHORTFLOAT:
+		str = "短浮点数值";
+		break;
+	default:
+		break;
+	}
+
+	return str;
+}
+
+ENUM_MEASURECONFIG_TYPE CPubFuncSystem::ConMeasureConfigTypeNameToId(string strMeasureConfigType)
+{
+	ENUM_MEASURECONFIG_TYPE eMeasureConfigType = EMCT_NORMALIZE;
+	if (strMeasureConfigType == "归一化值")
+	{
+		eMeasureConfigType = EMCT_NORMALIZE;
+	}
+	else if (strMeasureConfigType == "标度值")
+	{
+		eMeasureConfigType = EMCT_SCALE;
+	}
+	else if (strMeasureConfigType == "短浮点数值")
+	{
+		eMeasureConfigType = EMCT_SHORTFLOAT;
+	}
+
+	return eMeasureConfigType;
+}

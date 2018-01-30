@@ -1,0 +1,49 @@
+<!-- CommBridge <外部通道桥接服务> 的私有配置文件 -->
+<CommBridge>
+	<Rsm>
+		<LocalClient>
+			<ClientId>41</ClientId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Rsm_CommInner</UnixPath> 
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x05,0x01 </TypeFunc>
+						<TypeFunc> 0x05,0xff </TypeFunc>
+						<TypeFunc> 0x06 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</LocalClient>
+
+		<RemoteClient>
+			<ClientId>42</ClientId>
+			<Type>AF_INET</Type>
+			<MyIpPort>
+				<Ip>192.168.2.2</Ip>
+				<Port>14042</Port>
+				<Ip2>192.169.2.2</Ip2>
+				<Port2>14042</Port2>
+			</MyIpPort>
+			<ServerIpPort Lines="1,2,3">
+				<Ip>192.168.1.1</Ip>
+				<Port>14000</Port>
+				<Ip2>192.169.1.1</Ip2>
+				<Port2>14000</Port2>
+			</ServerIpPort>
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x05,0x01 </TypeFunc>
+						<TypeFunc> 0x05,0xff </TypeFunc>
+						<TypeFunc> 0x06 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</RemoteClient>
+
+	</Rsm>
+
+</CommBridge>

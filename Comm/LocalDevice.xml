@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="gb2312"?>
+<!-- 本地设备配置文件 -->
+<LocalDevice> 
+	<!-- 本地设备地址信息配置说明如下：
+	BureauId：	单位所属路局ID；	整型类型；	【必须配置】；范围（1-254）
+	UnitType：	单位类型；			整型类型；	【必须配置】；范围：1-中心，2-车站
+	UnitId：	单位ID；			整型类型；	【必须配置】；范围（1-65534）；
+				<UnitType>为中心时，UnitId为1；<UnitType>为车站时，UnitId表示车站ID。
+	DeviceType：设备类型；			整型类型；	【必须配置】；范围：1-服务器，2-调度台，3-其他终端
+	DeviceId：	设备ID；			整型类型；	【必须配置】；范围（1-65534）；
+				一个设备可以理解为一台（或一对漂移IP的双机）计算机。
+				设备ID用以区分某单位范围内某设备类型下不同设备。
+	Ab：		双机标识；			字符类型；	【可选配置】；范围：a-A机，b-B机，默认为a
+	-->
+	<BureauId>1</BureauId>
+	<UnitType>1</UnitType>
+	<UnitId>1</UnitId>
+	<DeviceType>1</DeviceType>
+	<DeviceId>1</DeviceId>
+	<Ab>a</Ab>
+</LocalDevice>

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="gb2312"?>
+<!-- CommDual <双机同步交互服务> 的私有配置文件 -->
+<CommDual>
+	<Syn>
+		<LocalServer>
+			<ServerId>51</ServerId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Syn_CommDual</UnixPath> 
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</LocalServer>
+
+		<SynServer>
+			<ServerId>51</ServerId>
+			<Type>AF_INET</Type>
+			<Net1>
+				<ServerIp>172.18.10.5</ServerIp>
+				<ServerPort>15000</ServerPort>
+			</Net1>
+			<Net2>
+				<ServerIp>172.18.11.5</ServerIp>	
+				<ServerPort>15000</ServerPort>
+			</Net2>
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</SynServer>
+
+		<SynClient>
+			<ClientId>51</ClientId>
+			<Type>AF_INET</Type>
+			<MyIpPort>
+				<Ip>172.18.10.5</Ip>
+				<Port>15051</Port>
+				<Ip2>172.18.11.5</Ip2>
+				<Port2>15051</Port2>
+			</MyIpPort>
+			<ServerIpPort Lines="1,2,3">
+				<Ip>172.18.10.6</Ip>
+				<Port>15000</Port>
+				<Ip2>172.18.11.6</Ip2>
+				<Port2>15000</Port2>
+			</ServerIpPort>
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x32,0x80 </TypeFunc>
+						<TypeFunc> 0x32,0x90 </TypeFunc>
+						<TypeFunc> 0x32,0x91 </TypeFunc> 
+						<TypeFunc> 0x32,0x92 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</SynClient>
+
+	</Syn>
+	<Mgr>
+		<LocalServer>
+			<ServerId>51</ServerId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Mgr_CommDual</UnixPath> 
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</LocalServer>
+
+		<SynServer>
+			<ServerId>51</ServerId>
+			<Type>AF_INET</Type>
+			<Net1>
+				<ServerIp>172.18.10.5</ServerIp>
+				<ServerPort>16000</ServerPort>
+			</Net1>
+			<Net2>
+				<ServerIp>172.18.11.5</ServerIp>	
+				<ServerPort>16000</ServerPort>
+			</Net2>
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</SynServer>
+
+		<SynClient>
+			<ClientId>51</ClientId>
+			<Type>AF_INET</Type>
+			<MyIpPort>
+				<Ip>172.18.10.5</Ip>
+				<Port>16051</Port>
+				<Ip2>172.18.11.5</Ip2>
+				<Port2>16051</Port2>
+			</MyIpPort>
+			<ServerIpPort Lines="1,2,3">
+				<Ip>172.18.10.6</Ip>
+				<Port>16000</Port>
+				<Ip2>172.18.11.6</Ip2>
+				<Port2>16000</Port2>
+			</ServerIpPort>
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x61,0x01 </TypeFunc>
+						<TypeFunc> 0x61,0x08 </TypeFunc>
+						<TypeFunc> 0x61,0x09 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</SynClient>
+
+	</Mgr>
+</CommDual>

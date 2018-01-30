@@ -1,0 +1,79 @@
+CXX  = g++ 
+LD   = g++ 
+AR   = ar rc
+
+#是否LINUX,AIX
+IS_LINUX=0
+IS_AIX=0
+TARSYS=$(shell uname)
+ifeq ($(TARSYS),AIX)
+	IS_AIX=1
+else
+	ifeq ($(TARSYS),Linux)
+		IS_LINUX=1
+	endif
+endif
+
+#是否自律机
+IS_LINUX_LIMITED=0
+ifeq ($(IS_LINUX),1)
+	SVRVER=$(shell uname -r|cut -d. -f2)
+	ifeq ($(SVRVER),2)
+		IS_LINUX_LIMITED=1
+	endif
+endif
+
+#是否tdcs自律机，可由环境变量omb_linux=tdcs来指定
+IS_LINUX_TDCS=0
+ifeq ($(IS_LINUX_LIMITED),1)
+	ifdef omb_linux
+		ifeq ($(omb_linux),tdcs)
+			IS_LINUX_TDCS=1
+		endif
+	endif
+endif
+
+#release编译选项可以由环境变量omb_release_flag指定，如-Os
+DEBUG_FLAG=-g
+ifdef omb_release_flag
+	DEBUG_FLAG=$(omb_release_flag)
+endif
+CXXFLAGS = $(DEBUG_FLAG) -DUNIX -DLOGDEBUG -ftemplate-depth-25
+
+#是自律机，则定义宏LINUX_LIMITED，源代码中部分代码以此作为条件编译
+#ifeq ($(IS_LINUX_LIMITED),1)
+#	CXXFLAGS = $(DEBUG_FLAG) -DUNIX -DLINUX_LIMITED -ftemplate-depth-25
+#endif
+
+#各个库是否编译为动态库
+IS_SRLIB=0
+
+ifdef omb_lib_dir
+IS_SRLIB=1
+endif
+
+#AIX要编译为动态库，用静态库有问题
+ifeq ($(IS_AIX),1)
+	IS_SRLIB=1
+endif
+
+#tdcs自律机要编译成动态库
+ifeq ($(IS_LINUX_TDCS),1)
+	IS_SRLIB=1
+endif
+
+#库的输出位置，一般来说静态库为当前目录，动态库为../lib
+LIB_DIR=.
+
+#设置编译动态库的相关参数，tdcs自律机动态库固定目录为/ctc_nc/lib
+ifeq ($(IS_SRLIB),1)
+	AR=$(LD) -fpic -shared -o
+	LIB_DIR=../lib
+	ifeq ($(IS_LINUX_TDCS),1)
+		LIB_DIR=/ctc_nc/lib
+	endif
+	ifdef omb_lib_dir
+		LIB_DIR=$(omb_lib_dir)
+	endif
+endif
+

@@ -1,0 +1,38 @@
+<!-- CommChannel <内部通道连通服务> 的私有配置文件 -->
+<CommChannel>
+	<RsmOsm>
+		<LeftClient>
+			<ClientId>31</ClientId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Rsm_CommInner</UnixPath> 
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x05,0x01 </TypeFunc>
+						<TypeFunc> 0x05,0xff </TypeFunc>
+						<TypeFunc> 0x06 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</LeftClient>
+
+		<RightClient>
+			<ClientId>32</ClientId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Osm_CommInner</UnixPath> 
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x05,0x01 </TypeFunc>
+						<TypeFunc> 0x05,0xff </TypeFunc>
+						<TypeFunc> 0x06 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</RightClient>
+
+	</RsmOsm>
+
+</CommChannel>

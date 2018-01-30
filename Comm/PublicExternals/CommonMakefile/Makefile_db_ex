@@ -1,0 +1,24 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_db
+
+PACKSELPATH = ../pack_selector
+PUBPROPATH = ../PublicProtocol
+DIAGRAMROPATH = ../DiagramProtocol
+DISPATROPATH = ../DispatchProtocol
+BASEPROPATH = ../BaseProtocol
+INDPROPATH = ../IndicationProtocol
+CTRLCMDPROPATH = ../CtrlCmdProtocol
+PARAMMTNPROPATH = ../ParamMtnProtocol
+STATPROPATH = ../StatAnalProtocol
+
+
+
+
+EXTRA_LIBS := $(PACKSELPATH)/packsellib $(DISPATROPATH)/DispatchProLib $(DIAGRAMROPATH)/DiagramProLib \
+              $(PUBPROPATH)/PublicProLib $(INDPROPATH)/IndicationProLib \
+              $(CTRLCMDPROPATH)/CtrlCmdProLib $(PARAMMTNPROPATH)/ParamMtnProLib $(STATPROPATH)/StatAnalProLib\
+              $(BASEPROPATH)/BaseProLib $(EXTRA_LIBS)
+
+INCS := -I$(PACKSELPATH) -I$(DISPATROPATH) -I$(DIAGRAMROPATH) -I$(PUBPROPATH) -I$(INDPROPATH)\
+         -I$(CTRLCMDPROPATH) -I$(PARAMMTNPROPATH) -I$(STATPROPATH)\
+         -I$(BASEPROPATH) $(INCS)
+		

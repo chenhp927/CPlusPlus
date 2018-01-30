@@ -1,0 +1,44 @@
+<!-- CommTerm <终端数据转发服务> 的私有配置文件 -->
+<CommTerm>
+	<Rsm>
+		<Server>
+			<ServerId>21</ServerId>
+			<Type>AF_INET</Type>
+			<Net1>
+				<ServerIp>172.18.10.200</ServerIp>
+				<ServerPort>13000</ServerPort>
+			</Net1>
+			<Net2>
+				<ServerIp>172.18.11.200</ServerIp>	
+				<ServerPort>13000</ServerPort>
+			</Net2>
+			<MaxClients>512</MaxClients>
+
+			<SessionParam>
+				<HeartInterval>3</HeartInterval>
+				<HeartTimeout>6</HeartTimeout>
+				<AckInterval>2</AckInterval>
+				<AckTimeout>9</AckTimeout>
+				<WindowSize>1</WindowSize>
+			</SessionParam>
+		</Server>
+
+		<Client>
+			<ClientId>21</ClientId>
+			<Type>AF_UNIX</Type>
+			<UnixPath>/Scada/AppSvrA/Sock/Rsm_CommInner</UnixPath> 
+
+			<InCondition>
+				<Rec>
+					<TypeFuncCond>
+						<TypeFunc> 0x05,0x01 </TypeFunc>
+						<TypeFunc> 0x05,0xff </TypeFunc>
+						<TypeFunc> 0x06 </TypeFunc>
+					</TypeFuncCond>
+				</Rec>
+			</InCondition>
+		</Client>
+
+	</Rsm>
+
+</CommTerm>

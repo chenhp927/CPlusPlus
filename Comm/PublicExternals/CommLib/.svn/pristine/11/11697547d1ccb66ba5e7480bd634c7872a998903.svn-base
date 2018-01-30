@@ -1,0 +1,1193 @@
+//==============================================================================
+//                      ClientBase.cpp
+//
+//begin   : 2016-05-12
+//describe:
+//==============================================================================
+
+#include "ClientBase.h" 
+#include "CommUtility.h"
+#include "Utility.h"
+
+//==============================================================================
+//                 
+//                    CClientBase
+//                    客户端基类
+//
+//==============================================================================
+CClientBase::CClientBase() : 
+		m_nSockfd(INVALID_SOCKET), 
+		m_nType(0),
+		m_sSvrPort(0),
+		m_sMyPort(0),
+		m_nConnectStatus(CS_DISCONNECT), 
+		m_nRetryInterval(DEF_RETRYINTERVAL), 
+		m_nSendQueueDepth(SEND_QUEUE_DEPTH),
+		m_nMaxPacketSize(MAX_PACKETSIZE)
+{
+	SetMyClassName("CClientBase");
+	CCommUtility::SockStart();
+
+	memset(m_szUnixPath, 0, sizeof(m_szUnixPath)); 
+	memset(m_szSvrIp, 0, sizeof(m_szSvrIp));
+	memset(m_szMyIp, 0, sizeof(m_szMyIp));
+	m_dwRetryTime = CUtility::GetUptime();
+	m_dwSendTime = CUtility::GetUptime(); 
+	m_dwRecvTime = CUtility::GetUptime(); 
+
+	m_pRecvTmpBuf = m_objBufAlloc.Allocate(); 
+	assert(m_pRecvTmpBuf);
+	m_pRecvTmpBuf->Extend(MAX_PACKETSIZE);
+} 
+ 
+CClientBase::~CClientBase() 
+{ 
+	LogImportant("CClientBase::~CClientBase(), \n connection(%s) \n will close socket ...",
+		GetTagConnInfo().c_str()); 
+
+	CloseToServer(); 
+	
+	if (m_pRecvTmpBuf) 
+	{
+		m_pRecvTmpBuf->Release();
+		m_pRecvTmpBuf = NULL;
+	} 
+} 
+
+bool CClientBase::Init(const char* szConfigFile)
+{
+	return true;
+}
+
+string CClientBase::GetDumpParamStr()
+{
+	char szDump[1024];
+	memset(szDump, 0, sizeof(szDump));
+	
+	if (m_nType == AF_UNIX)
+	{
+		snprintf(szDump, sizeof(szDump), "client_param  (client_type=%d; unix_path=%s)", m_nType, m_szUnixPath);
+	}
+	else if (m_nType == AF_INET)
+	{
+		snprintf(szDump, sizeof(szDump), "client_param  (client_type=%d; svr_ip=%s; svr_port=%d; my_ip=%s; my_port=%d)", m_nType, m_szSvrIp, m_sSvrPort, m_szMyIp, m_sMyPort);
+	}
+	else
+	{
+		snprintf(szDump, sizeof(szDump), "client_param  (client_type=%d; unix_path=%s; svr_ip=%s; svr_port=%d; my_ip=%s; my_port=%d)", m_nType, m_szUnixPath, m_szSvrIp, m_sSvrPort, m_szMyIp, m_sMyPort);
+	}
+	
+	return szDump;
+	
+}
+
+void CClientBase::DumpParam()
+{
+	LogImportant("CClientBase::DumpParam(),\n%s", GetDumpParamStr().c_str());
+}
+
+string CClientBase::GetTagSvrInfo()
+{
+	char temp[256];
+	memset(temp, 0, sizeof(temp));
+
+	if (m_nType == AF_INET)
+	{
+		snprintf(temp, sizeof(temp), "%s:%d", m_szSvrIp, m_sSvrPort);
+	}
+	else if (m_nType == AF_UNIX)
+	{
+		snprintf(temp, sizeof(temp), "%s", m_szUnixPath);
+	}
+		
+	return temp;
+}
+
+string CClientBase::GetTagMyInfo()
+{
+	char temp[256];
+	memset(temp, 0, sizeof(temp));
+	
+	if (m_nType == AF_INET)
+	{
+		snprintf(temp, sizeof(temp), "%s:%d", m_szMyIp, m_sMyPort);
+	}
+	else if (m_nType == AF_UNIX)
+	{
+	}
+	
+	return temp;
+}
+
+string CClientBase::GetTagConnInfo()
+{
+	string strConn = "";
+	strConn += "<c:";
+	strConn += GetTagMyInfo();
+	strConn += ">-<s:";
+	strConn += GetTagSvrInfo();
+	strConn += ">";
+	return strConn;
+}
+
+void CClientBase::SetType(int nType)
+{
+	assert(nType == AF_INET || nType == AF_UNIX);
+	m_nType = nType;
+}
+
+int CClientBase::GetType()
+{
+	return m_nType;
+}
+
+void CClientBase::SetUnixPath(const char* szPath)
+{
+	assert(szPath && strlen(szPath) > 0 && strlen(szPath) < sizeof(m_szUnixPath));
+	strcpy(m_szUnixPath, szPath);
+	m_nType = AF_UNIX; 
+}
+
+const char* CClientBase::GetUnixPath()
+{
+	return m_szUnixPath;
+}
+
+void CClientBase::SetSvrIp(const char* szIp)
+{
+	assert(szIp && strlen(szIp) < sizeof(m_szSvrIp));
+	strcpy(m_szSvrIp, szIp);
+}
+
+string CClientBase::GetSvrIp()
+{
+	return m_szSvrIp;
+}
+
+void CClientBase::SetSvrPort(unsigned short sPort)
+{
+//	assert(sPort > 1024);
+	m_sSvrPort = sPort;
+}
+
+int CClientBase::GetSvrPort()
+{
+	return static_cast<int>(m_sSvrPort);
+}
+
+void CClientBase::SetMyIp(const char* szIp)
+{
+	assert(szIp && strlen(szIp) < sizeof(m_szMyIp));
+	strcpy(m_szMyIp, szIp);
+}
+
+string CClientBase::GetMyIp()
+{
+	return m_szMyIp;
+}
+
+void CClientBase::SetMyPort(unsigned short sPort)
+{
+	assert(sPort >= 0);
+	m_sMyPort = sPort;
+}
+
+int CClientBase::GetMyPort()
+{
+	return static_cast<int>(m_sMyPort);
+}
+
+void CClientBase::SetMyBackUpPort( unsigned short sBackUpPort )
+{
+	m_sBackUpPort = sBackUpPort;
+}
+
+int CClientBase::GetMyBackUpPort()
+{
+	return static_cast<int>(m_sBackUpPort);
+}
+
+void CClientBase::SetConnectStatus(int nStatus)
+{
+	m_nConnectStatus = nStatus;
+}
+
+int  CClientBase::GetConnectStatus()
+{
+	return m_nConnectStatus;
+}
+
+void CClientBase::SetRetryInterval(int nSec)
+{
+	if (nSec > 0)
+	{
+		m_nRetryInterval = nSec;
+	}
+}
+
+void CClientBase::SetSendQueueDepth(int nDepth)
+{
+	assert(nDepth > 0);
+	m_nSendQueueDepth = nDepth;
+}
+
+int CClientBase::GetSendQueueDepth()
+{
+	return m_nSendQueueDepth;
+}
+
+void CClientBase::SetMaxPacketSize(int nSize)
+{
+	assert(nSize > 0);
+	m_nMaxPacketSize = nSize;
+}
+
+int CClientBase::GetMaxPacketSize()
+{
+	return m_nMaxPacketSize;
+}
+
+void CClientBase::SwitchPort()
+{
+	unsigned short sPort = m_sMyPort;
+	m_sMyPort = m_sBackUpPort;
+	m_sBackUpPort = sPort;
+}
+
+bool CClientBase::Connect()
+{
+	if (m_nType == AF_INET)
+	{
+		return Connect(m_szSvrIp, m_sSvrPort);
+	}
+	else if (m_nType == AF_UNIX)
+	{
+		return Connect(m_szUnixPath);
+	}
+	else
+	{
+		LogImportant("CClientBase::Connect(), \n connection(%s) \n fail! client_type(%d) is error!", 
+			GetTagConnInfo().c_str(), m_nType);
+		return false;
+	}
+}
+
+bool CClientBase::Connect(const char* szPath) 
+{  
+	if (!szPath)
+	{
+		return false;
+	}
+	
+	if (m_nType != 0 && m_nType != AF_UNIX)
+	{
+		LogImportant("CClientBase::Connect(), \n connection(%s) \n fail! client_type(%d) is error! I need client_type(%d).", 
+			GetTagConnInfo().c_str(), m_nType, AF_UNIX);
+		return false;
+	}
+
+	m_nType = AF_UNIX;
+	assert(strlen(szPath) < sizeof(m_szUnixPath));
+	strcpy(m_szUnixPath, szPath); 
+	
+	return ConnectToUnixServer(); 
+} 
+
+bool CClientBase::Connect(const char* szIP, unsigned short nPort) 
+{
+	if (!szIP)
+	{
+		return false;
+	}
+	
+	if (m_nType != 0 && m_nType != AF_INET)
+	{
+		LogImportant("CClientBase::Connect(), \n connection(%s) \n fail! client_type(%d) is error! I need client_type(%d).", 
+			GetTagConnInfo().c_str(), m_nType, AF_INET);
+		return false;
+	}
+
+	if (!CCommUtility::IsValidIP(szIP))
+	{
+		LogImportant("CClientBase::Connect(), \n connection(%s) \n fail! ip is invalid.", 
+			GetTagConnInfo().c_str());
+		return false;
+	}
+
+	m_nType = AF_INET;
+	assert(strlen(szIP) < sizeof(m_szSvrIp));
+	strcpy(m_szSvrIp, szIP);
+	m_sSvrPort = nPort;
+	
+	return ConnectToInetServer(); 
+} 
+
+bool CClientBase::ConnectToUnixServer() 
+{ 
+	if (m_szUnixPath[0] == 0)
+	{
+		return false;
+	}
+	
+	LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n will startup ...", 
+		GetTagConnInfo().c_str());
+		
+	m_nSockfd = socket(AF_UNIX, SOCK_STREAM, 0); 
+	if (m_nSockfd == INVALID_SOCKET) 
+	{ 
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n make socket() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		return false; 
+	} 
+
+	if (!CCommUtility::SetNonBlock(m_nSockfd))
+	{
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n CCommUtility::SetNonBlock() fail!",
+			GetTagConnInfo().c_str());
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+
+	if (!CCommUtility::SetSockBuf(m_nSockfd)) 
+	{
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n CCommUtility::SetSockBuf() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		perror("setsockopt");
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+	
+	if (!CCommUtility::SetSockNodelay(m_nSockfd))
+	{
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n CCommUtility::SetSockNodelay() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		perror("setsockopt");
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+
+#if defined(UNIX) || defined(HP_UX)
+	struct sockaddr_un stuSvrAddr; 
+	memset (&stuSvrAddr, 0, sizeof(stuSvrAddr)); 
+	stuSvrAddr.sun_family = AF_UNIX; 
+	strcpy(stuSvrAddr.sun_path, m_szUnixPath); 
+#endif
+
+#ifdef HP_UX 
+	if (connect(m_nSockfd, &stuSvrAddr, SUN_LEN(&stuSvrAddr)) == -1) 
+#endif
+#ifdef UNIX
+	if (connect(m_nSockfd, (struct sockaddr*)&stuSvrAddr, SUN_LEN(&stuSvrAddr)) == -1) 
+#else
+	assert(0); // windows没有AF_UNIX客户端
+	if (1)
+#endif 
+	{ 
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n connect() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		CLOSE_SOCKET(m_nSockfd);
+		return false; 
+	}
+	else
+	{
+		LogImportant("CClientBase::ConnectToUnixServer(), \n connection(%s) \n connect() ok!", 
+			GetTagConnInfo().c_str()); 
+	}
+	
+	SetConnectStatus(CS_CONNECT); 
+	OnConnect(); 
+	
+	return true; 
+} 
+
+bool CClientBase::ConnectToInetServer() 
+{ 
+	if (m_sSvrPort == 0)
+	{
+		return false;
+	}
+	
+	assert(m_nSockfd == INVALID_SOCKET);
+	LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n will startup ...",  
+		GetTagConnInfo().c_str());
+	
+	m_nSockfd = socket(AF_INET, SOCK_STREAM, 0); 
+	if (m_nSockfd == INVALID_SOCKET) 
+	{ 
+		LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n make socket() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		return false; 
+	} 
+	if (!CCommUtility::SetNonBlock(m_nSockfd))
+	{
+		LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n CCommUtility::SetNonBlock() fail!",
+			GetTagConnInfo().c_str());
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+	if (!CCommUtility::SetSockBuf(m_nSockfd)) 
+	{
+		LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n CCommUtility::SetSockBuf() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+	
+	if (!CCommUtility::SetSockNodelay(m_nSockfd))
+	{
+		LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n CCommUtility::SetSockNodelay() fail! errno=%d", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		CLOSE_SOCKET(m_nSockfd);
+		return false;
+	}
+
+	//客户端绑定本地地址
+	if (strlen(m_szMyIp) > 0 || m_sMyPort > 0)
+	{
+		struct sockaddr_in stuMyAddr;
+		memset (&stuMyAddr, 0, sizeof(stuMyAddr));
+		stuMyAddr.sin_family = AF_INET;
+		if (m_sMyPort > 0)
+		{
+			stuMyAddr.sin_port = htons(m_sMyPort);
+		}
+		else
+		{
+			stuMyAddr.sin_port = htons(0);
+		}
+
+		if (strlen(m_szMyIp) > 0)
+		{
+			stuMyAddr.sin_addr.s_addr = inet_addr(m_szMyIp);
+		}
+		else
+		{
+			stuMyAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+		}
+
+		if (stuMyAddr.sin_addr.s_addr == INADDR_NONE)
+		{
+			stuMyAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+		}
+
+#ifdef HP_UX  
+		if (bind(m_nSockfd, &stuMyAddr, sizeof(stuMyAddr)) == -1)   
+#else  
+		if (bind(m_nSockfd, (struct sockaddr*)&stuMyAddr, sizeof(stuMyAddr)) == -1)  
+#endif  
+		{
+			CLOSE_SOCKET(m_nSockfd);
+			LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n bind() socket with local_addr(%s,%d) fail! errno=%d", 
+				GetTagConnInfo().c_str(), GetMyIp().c_str(), GetMyPort(), ERRNO); 
+			
+			//切换主备端口
+			LogImportant("CClientSessionBase::ConnectToInetServer() fail, switch MyPort(%d) to MyBackUpPort(%d)", 
+				GetMyPort(), GetMyBackUpPort());
+			SwitchPort();
+
+			return false;
+		}
+		else
+		{
+			LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n bind() socket with local_addr(%s,%d) ok!", 
+				GetTagConnInfo().c_str(), GetMyIp().c_str(), GetMyPort()); 
+		}
+	}
+
+	struct sockaddr_in stuSvrAddr; 
+	memset (&stuSvrAddr, 0, sizeof(stuSvrAddr)); 
+	stuSvrAddr.sin_family = AF_INET; 
+	stuSvrAddr.sin_port = htons(m_sSvrPort);
+	stuSvrAddr.sin_addr.s_addr = inet_addr(m_szSvrIp);
+
+#ifdef HP_UX 
+	if (connect(m_nSockfd, &stuSvrAddr, sizeof(stuSvrAddr)) == -1) 
+#else 
+	if (connect(m_nSockfd, (struct sockaddr*)&stuSvrAddr, sizeof(stuSvrAddr)) == -1) 
+#endif 
+	{
+		int nErr = ERRNO;
+
+		if (nErr == E_SOKCETINPROGRESS)
+		{
+			SetConnectStatus(CS_CONNECTING);
+			m_dwRecvTime = CUtility::GetUptime();
+			LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n connect() ok! errno=%d(E_SOKCETINPROGRESS), it is connecting ...", 
+				GetTagConnInfo().c_str(), nErr); 
+		}
+		else
+		{
+			LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n connect() fail! errno=%d", 
+				GetTagConnInfo().c_str(), nErr); 
+			CLOSE_SOCKET(m_nSockfd);
+
+			//切换主备端口
+			LogImportant("CClientSessionBase::ConnectToInetServer() fail, switch MyPort(%d) to MyBackUpPort(%d)", 
+				GetMyPort(), GetMyBackUpPort());
+			SwitchPort();
+
+			return false; 
+		}
+	} 
+	else
+	{
+		LogImportant("CClientBase::ConnectToInetServer(), \n connection(%s) \n connect() ok!", 
+			GetTagConnInfo().c_str()); 
+		SetConnectStatus(CS_CONNECT); 
+		OnConnect(); 
+	}
+	
+	return true; 
+} 
+ 
+void CClientBase::OnConnect() 
+{ 
+	m_dwRecvTime = CUtility::GetUptime(); 
+//	m_tSend = CUtility::GetUptime(); 
+}
+ 
+bool CClientBase::IsConnect() 
+{ 
+	return (m_nSockfd!=INVALID_SOCKET) && (GetConnectStatus() >= CS_CONNECT);	 
+}
+
+void CClientBase::Close() 
+{ 
+	LogImportant("CClientBase::Close(), \n connection(%s) \n will close socket ...",
+		GetTagConnInfo().c_str()); 
+	CloseToServer(); 
+} 
+
+void CClientBase::CloseToServer() 
+{ 
+	if (m_nSockfd != INVALID_SOCKET)  
+	{
+		CLOSE_SOCKET(m_nSockfd); 
+		m_nSockfd = INVALID_SOCKET; 
+
+		LogImportant("CClientBase::CloseToServer(), \n connection(%s) \n close ok!", 
+			GetTagConnInfo().c_str()); 
+
+		OnClose(); 
+	}
+	else
+	{
+		LogImportant("CClientBase::CloseToServer(), \n connection(%s) \n close fail because socket is invalid!", 
+			GetTagConnInfo().c_str()); 
+	}
+
+	//切换主备端口
+	LogImportant("CClientSessionBase::CloseToServer, switch MyPort(%d) to MyBackUpPort(%d)", 
+		GetMyPort(), GetMyBackUpPort());
+	SwitchPort();
+} 
+ 
+void CClientBase::OnClose() 
+{ 
+	if (m_pRecvTmpBuf)
+	{
+		m_pRecvTmpBuf->Empty();
+	}
+ 
+	ClearRecvQueue();
+	ClearSendQueue();
+	 
+	SetConnectStatus(CS_DISCONNECT); 
+} 
+
+const DWORD CClientBase::GetSendTime()
+{
+	return m_dwSendTime;
+}
+
+const DWORD CClientBase::GetRecvTime()
+{
+	return m_dwRecvTime;
+}
+
+void CClientBase::ClearRecvQueue() 
+{
+	// 队列清空前输出日志
+	int nLastPktCount = m_RecvQueue.GetSize();
+	if (nLastPktCount > 0)
+	{
+		if (IsConnect())
+		{
+			LogImportant("CClientBase::ClearRecvQueue(), \n connection(%s) \n it is connecting, queue_size=%d, will throw packets ...", 
+				GetTagConnInfo().c_str(), nLastPktCount);
+		}
+		else
+		{
+			LogImportant("CClientBase::ClearRecvQueue(), \n connection(%s) \n it is disconnected, queue_size=%d, will throw packets ...", 
+				GetTagConnInfo().c_str(), nLastPktCount);
+		}
+	}
+	
+	// 执行队列清空操作
+	CBuffer* pBuf = NULL; 
+	while (!m_RecvQueue.IsEmpty()) 
+	{ 
+		if (m_RecvQueue.GetHead(pBuf)) 
+		{
+// 			if (IsConnect())
+// 			{
+// 				LogDataImportant(pBuf->GetBuffer(), pBuf->GetUsed());
+// 			}
+			pBuf->Release(); 
+		}
+		else
+		{
+			break; 
+		}
+	} 
+	
+	// 队列清空后输出日志
+	int nThrowPktCount = nLastPktCount - m_RecvQueue.GetSize();
+	if (nThrowPktCount > 0 || m_RecvQueue.GetSize() > 0)
+	{
+		LogImportant("CClientBase::ClearRecvQueue(), \n connection(%s) \n succeed to throw %d packets, now queue_size=%d.", 
+			GetTagConnInfo().c_str(), nThrowPktCount, m_RecvQueue.GetSize());
+	}
+}
+ 
+void CClientBase::ClearSendQueue()  
+{ 
+	// 队列清空前输出日志
+	int nLastPktCount = m_SendQueue.GetSize();
+	if (nLastPktCount > 0)
+	{
+		if (IsConnect())
+		{
+			LogImportant("CClientBase::ClearSendQueue(), \n connection(%s) \n it is connecting, queue_size=%d, will throw packets ...", 
+				GetTagConnInfo().c_str(), nLastPktCount);
+		}
+		else
+		{
+			LogImportant("CClientBase::ClearSendQueue(), \n connection(%s) \n it is disconnected, queue_size=%d, will throw packets ...", 
+				GetTagConnInfo().c_str(), nLastPktCount);
+		}
+	}
+
+	// 执行队列清空操作
+	CBuffer* pBuf = NULL;  
+	while (!m_SendQueue.IsEmpty()) 
+	{ 
+		if (m_SendQueue.GetHead(pBuf)) 
+		{
+// 			if (IsConnect())
+// 			{
+// 				LogDataImportant(pBuf->GetBuffer(), pBuf->GetUsed());
+// 			}
+			pBuf->Release(); 
+		}
+		else 
+		{
+			break; 
+		}
+	} 
+
+	// 队列清空后输出日志
+	int nThrowPktCount = nLastPktCount - m_SendQueue.GetSize();
+	if (nThrowPktCount > 0 || m_SendQueue.GetSize() > 0)
+	{
+		LogImportant("CClientBase::ClearSendQueue(), \n connection(%s) \n succeed to throw %d packets, now queue_size=%d.", 
+			GetTagConnInfo().c_str(), nThrowPktCount, m_SendQueue.GetSize());
+	}
+} 
+
+void CClientBase::SetFdset(CFdset& objFs) 
+{ 
+	if (SOCKET_VALID(m_nSockfd))
+	{
+		objFs.SetRead(m_nSockfd); 
+		objFs.SetExcept(m_nSockfd); 
+		if (GetConnectStatus() == CS_CONNECTING)
+		{
+			objFs.SetWrite(m_nSockfd);
+		}
+	}
+} 
+ 
+void CClientBase::HandleNetEvent(CFdset& objFs) 
+{ 
+	if (!SOCKET_VALID(m_nSockfd))
+	{
+		return;
+	} 
+	
+	int nCheckErr = 0;
+	if (!CCommUtility::CheckSock(m_nSockfd, nCheckErr))//当socket有so_error的时候，read和write事件都会设置
+	{
+		LogImportant("CClientBase::HandleNetEvent(), \n connection(%s) \n CCommUtility::CheckSock() fail, errno=%d, so will close socket ...",
+			GetTagConnInfo().c_str(), nCheckErr); 
+		CloseToServer(); 
+		return;
+	} 
+
+	if (SOCKET_VALID(m_nSockfd) && objFs.IsSetRead(m_nSockfd)) 
+	{
+		Read();
+	}	
+	
+	if (SOCKET_VALID(m_nSockfd) && objFs.IsSetExcept(m_nSockfd)) 
+	{
+		LogImportant("CClientBase::HandleNetEvent(), \n connection(%s) \n socket except! errno=%d, so will close socket ...", 
+			GetTagConnInfo().c_str(), ERRNO); 
+		CloseToServer(); 
+	}
+	
+	if (SOCKET_VALID(m_nSockfd) && GetConnectStatus() == CS_CONNECTING && objFs.IsSetWrite(m_nSockfd))
+	{
+		OnConnectResponse();
+	}
+} 
+
+void CClientBase::OnConnectResponse()
+{
+	int nOpt = 0;
+	socklen_t nOptLen = sizeof(nOpt);
+	int nRet = getsockopt(m_nSockfd, SOL_SOCKET, SO_ERROR, (char*)&nOpt, &nOptLen);
+	if (nRet != 0 || nOpt != 0)
+	{
+		LogImportant("CClientBase::OnConnectResponse(), \n connection(%s) \n getsockopt() fail. ret=%d, opt=%d", 
+			GetTagConnInfo().c_str(), nRet, nOpt);
+		CLOSE_SOCKET(m_nSockfd);
+		m_dwRetryTime = CUtility::GetUptime();
+		SetConnectStatus(CS_DISCONNECT);
+	}
+	else
+	{
+		SetConnectStatus(CS_CONNECT);
+		OnConnect();
+	}
+}
+
+int	CClientBase::Read() 
+{ 
+	OnRead(); 
+ 
+	if (!m_pRecvTmpBuf) 
+	{
+		m_pRecvTmpBuf = m_objBufAlloc.Allocate(); 
+	}
+	
+	if (m_pRecvTmpBuf->GetAvailableSize() == 0)
+	{
+		m_pRecvTmpBuf->Extend(); 
+	}
+ 
+	int nRet = recv(m_nSockfd, m_pRecvTmpBuf->GetAvailableBuf(),  
+					m_pRecvTmpBuf->GetAvailableSize(), 0); 
+	if (nRet > 0) 
+	{ 
+		m_pRecvTmpBuf->Use(nRet); 
+
+		LogDebug("CClientBase::Read(), \n connection(%s) \n read=%d, now recv_buffer=%d", 
+			GetTagConnInfo().c_str(), nRet, m_pRecvTmpBuf->GetUsed()); 
+//		LogDataDebug(m_pRecvTmpBuf->GetBuffer(), m_pRecvTmpBuf->GetUsed()); 
+		
+		OnReadCompleted(); 
+	} 
+	else if (nRet == 0) 
+	{ 
+		LogImportant("CClientBase::Read(), \n connection(%s) \n read disconnect [recv()=0] from server, so will close socket ...",
+			GetTagConnInfo().c_str());
+
+		CloseToServer(); 
+	} 
+	else 
+	{ 
+		OnReadError(); 
+	} 
+	
+	return nRet; 
+} 
+ 
+void CClientBase::OnRead() 
+{ 
+	m_dwRecvTime = CUtility::GetUptime(); 
+	
+// 	LogDebug("CClientBase::OnRead(), \n connection(%s) \n cur read data len=%d",
+// 		GetTagConnInfo().c_str(), m_pRecvTmpBuf->GetUsed());
+} 
+ 
+void CClientBase::OnReadCompleted() 
+{ 
+	while(m_pRecvTmpBuf->GetUsed() > 0) 
+	{ 
+		int nPacketSize = GetRecvPacketSize(m_pRecvTmpBuf); 
+		if (nPacketSize <= 0 || nPacketSize > GetMaxPacketSize()) 
+		{ 
+			LogImportant("CClientBase::OnReadCompleted(), \n connection(%s) \n the length(%d) in packet is larger than the max(%d), so will close socket ...", 
+				GetTagConnInfo().c_str(), nPacketSize, GetMaxPacketSize()); 
+			LogDataImportant(m_pRecvTmpBuf->GetBuffer(), m_pRecvTmpBuf->GetUsed());
+
+			CloseToServer(); 
+			break; 
+		} 
+		else if (nPacketSize > m_pRecvTmpBuf->GetUsed())  // 数据包未接收完整
+		{ 
+			break; 
+		} 
+	 	else
+	 	{
+			CBuffer* pNewBuf = m_pRecvTmpBuf->Split(nPacketSize); 
+
+			LogDebug("CClientBase::OnReadCompleted(), \n connection(%s) \n split one pkt length=%d, now recv_buffer=%d", 
+				GetTagConnInfo().c_str(), pNewBuf->GetUsed(), m_pRecvTmpBuf->GetUsed());
+
+			ProcessStreamPacket(pNewBuf); 
+	 	}
+	}
+} 
+
+void CClientBase::OnReadError() 
+{
+	int nErr = ERRNO;
+
+	if (nErr != EAGAIN)
+	{
+		LogImportant("CClientBase::OnReadError(), \n connection(%s) \n read error=%d, so will close socket ...", 
+			GetTagConnInfo().c_str(), nErr);
+
+		CloseToServer(); 
+	}
+	else
+	{
+		LogImportant("CClientBase::OnReadError(), \n connection(%s) \n read error=%d (EAGAIN), continue ...", 
+			GetTagConnInfo().c_str(), nErr);
+	}
+} 
+
+void CClientBase::ProcessStreamPacket(CBuffer* pBuf) 
+{ 
+	assert(pBuf);
+	LogDebug("CClientBase::ProcessStreamPacket(), \n connection(%s) \n recv a packet, len=%d.", 
+		GetTagConnInfo().c_str(), pBuf->GetUsed());
+ 	LogDataDebug(pBuf->GetBuffer(), pBuf->GetUsed()); 
+
+	AddRecvPacketToQueue(pBuf);
+} 
+
+void CClientBase::AddRecvPacketToQueue(CBuffer* pBuf)
+{
+	if (!m_RecvQueue.AddTail(pBuf)) 
+	{
+		LogImportant("CClientBase::AddRecvPacketToQueue(), \n connection(%s) \n m_vecRecvQueue.AddTail() fail! packet len=%d.", 
+			GetTagConnInfo().c_str(), pBuf->GetUsed());
+		LogDataImportant(pBuf->GetBuffer(), pBuf->GetUsed());
+		pBuf->Release();
+		 
+		if (m_RecvQueue.IsOverflow()) 
+		{
+			LogImportant("CClientBase::AddRecvPacketToQueue(), \n connection(%s) \n m_vecRecvQueue.IsOverflow()",
+				GetTagConnInfo().c_str());
+			ClearRecvQueue(); 
+		}
+	}  
+}
+
+bool CClientBase::IsHasData()
+{
+	return !m_RecvQueue.IsEmpty();
+}
+
+bool CClientBase::RecvData(char* szBuf, int& nBufLen) 
+{ 
+	CBuffer* pBuf = NULL; 
+	bool bRet = false; 
+	if (m_RecvQueue.PeekHead(pBuf)) 
+	{ 
+		if (nBufLen < pBuf->GetUsed()) 
+		{ 
+			nBufLen = pBuf->GetUsed();
+		}
+		else if (m_RecvQueue.GetHead(pBuf)) 
+		{
+			memcpy(szBuf, pBuf->GetBuffer(), pBuf->GetUsed()); 
+			nBufLen = pBuf->GetUsed(); 
+			pBuf->Release();
+			bRet = true;  
+		} 
+		else 
+		{ 
+			nBufLen = 0;
+		} 
+	} 
+	else
+	{
+		nBufLen = 0;
+	}
+	
+	return bRet; 
+} 
+ 
+bool CClientBase::RecvData(CBuffer* pBuf) 
+{  
+	pBuf->Empty();
+
+	bool bRet = true;
+	CBuffer* pBufTmp = NULL; 
+	if (m_RecvQueue.GetHead(pBufTmp)) 
+	{
+		pBuf->AddData(pBufTmp);
+		pBufTmp->Release();
+	}
+	else
+	{
+		bRet = false;
+	}
+	
+	return bRet; 
+} 
+ 
+bool CClientBase::SendData(char* szBuf, int nBufLen) 
+{  
+	if (nBufLen > GetMaxPacketSize())
+	{ 
+		LogImportant("CClientBase::SendData(), \n connection(%s) \n send buf_len(%d) is larger than max(%d)!", 
+			GetTagConnInfo().c_str(), nBufLen, GetMaxPacketSize()); 
+		return false; 
+	} 
+	else if (nBufLen <= 0)
+	{
+		LogImportant("CClientBase::SendData(), \n connection(%s) \n send buf_len(%d) is error!", 
+			GetTagConnInfo().c_str(), nBufLen); 
+		return false; 
+	}
+	
+	if (!IsConnect()) 
+	{ 
+		LogImportant("CClientBase::SendData(), \n connection(%s) \n it is disconnect, can not send data!",
+			GetTagConnInfo().c_str()); 
+		return false; 
+	} 
+	
+	CBuffer* pBuf = m_objBufAlloc.Allocate(); 
+	assert(pBuf);
+	pBuf->AddData(szBuf, nBufLen); 
+
+	// 添加到发送队列	
+	pBuf->SetWParam(pBuf->GetUsed());
+	pBuf->SetFlag(0);
+	m_SendQueue.AddTail(pBuf);
+
+	if (m_SendQueue.GetSize() > 64)
+	{
+		LogDebug("CClientBase::SendData(), \n connection(%s) \n m_vecSendQueue.GetSize()=%d is larger than 64.", 
+			GetTagConnInfo().c_str(), m_SendQueue.GetSize());
+	}
+	
+	return true; 
+} 
+  
+bool CClientBase::SendData(CBuffer* pBuf) 
+{ 
+	return SendData(pBuf->GetBuffer(), pBuf->GetUsed()); 
+} 
+ 
+bool CClientBase::IsSendQueueInPart()
+{
+	if (m_SendQueue.IsEmpty())
+	{
+		return false; 
+	}
+	
+	CBuffer* pBuf = NULL; 
+	m_SendQueue.PeekHead(pBuf);
+	return pBuf->GetFlag() == 1;
+}
+
+void CClientBase::DoPatrol() 
+{ 
+	if (IsNotCfged()) // 没有配置，比如双网做单网使用，后面的操作就都不用了
+	{
+		return;
+	}
+	
+	if (m_SendQueue.GetSize() > GetSendQueueDepth())
+	{
+		LogImportant("CClientBase::DoPatrol(), \n connection(%s) \n m_vecSendQueue.GetSize()=%d is larger than max(%d), so will close socket ...", 
+			GetTagConnInfo().c_str(), m_SendQueue.GetSize(), GetSendQueueDepth());
+		CloseToServer();
+	}
+
+	if (m_nSockfd == INVALID_SOCKET) 
+	{ 
+		DWORD dwSpan = CUtility::GetElapseTime(m_dwRetryTime);
+		if (dwSpan >= m_nRetryInterval) 
+		{ 
+			if (m_nType == AF_INET)
+			{
+				ConnectToInetServer(); 
+			}
+			else if (m_nType == AF_UNIX)
+			{
+				ConnectToUnixServer();
+			}
+			m_dwRetryTime = CUtility::GetUptime(); 
+		} 
+	} 
+	else
+	{
+		while (!m_SendQueue.IsEmpty())
+		{
+			if (!Write())
+			{
+				break;
+			}
+		}
+		
+		OnPatrol();
+	}
+} 
+
+bool CClientBase::IsNotCfged()
+{
+	if (m_nType == AF_INET)
+	{
+		return strlen(m_szSvrIp) <=0 || m_sSvrPort == 0;
+	}
+	else
+	{
+		return strlen(m_szUnixPath) <=0;
+	}
+}
+
+void CClientBase::OnPatrol() 
+{ 
+	
+}  
+
+bool CClientBase::Write() 
+{ 
+	if (!SOCKET_VALID(m_nSockfd))
+	{
+		LogImportant("CClientBase::Write(), \n connection(%s) \n write not ready, socket is invalid. send queue size=%d", 
+			GetTagConnInfo().c_str(), m_SendQueue.GetSize());
+		return false;
+	}
+	
+	if (!IsConnect()) 
+	{
+		LogImportant("CClientBase::Write(), \n connection(%s) \n write not ready, conn_status=%d. send queue size=%d",	
+			GetTagConnInfo().c_str(), GetConnectStatus(), m_SendQueue.GetSize());
+		return false; 
+	} 
+ 
+	CBuffer* pBuf = NULL; 
+	if (m_SendQueue.IsEmpty() || !m_SendQueue.GetHead(pBuf)) 
+	{
+		return false; 
+	}
+	assert(pBuf);
+
+	if (pBuf->GetUsed() <= 0)
+	{
+		LogImportant("CClientBase::Write(), \n connection(%s) \n write error, send buf no data.",
+			GetTagConnInfo().c_str()); 
+		return false;
+	}
+
+	OnWrite(pBuf);  
+  
+	bool bRet = true; 
+	int	nSend = send(m_nSockfd, pBuf->GetBuffer(), pBuf->GetUsed(), 0);  
+
+	if (nSend == pBuf->GetUsed())  
+	{  
+		OnWriteCompleted(pBuf);  
+	}  
+	else if (nSend > 0)
+	{
+		OnWritePart(pBuf, nSend);
+		bRet = false; 
+	}
+	else 
+	{
+		OnWriteError(pBuf);  
+		bRet = false; 
+	}
+	
+	return bRet;  
+}  
+
+void CClientBase::OnWrite(CBuffer* pBuf) 
+{ 
+	m_dwSendTime = CUtility::GetUptime(); 
+	
+// 	LogDebug("CClientBase::OnWrite(), \n connection(%s) \n write data len=%d", 
+// 		GetTagConnInfo().c_str(), pBuf->GetUsed());
+// 	LogDataDebug(pBuf->GetBuffer(), pBuf->GetUsed());
+} 
+
+void CClientBase::OnWriteCompleted(CBuffer* pBuf) 
+{ 
+	LogDebug("CClientBase::OnWriteCompleted(), \n connection(%s) \n write pkt completed, total=%d, write=%d", 
+		GetTagConnInfo().c_str(), pBuf->GetWParam(), pBuf->GetUsed());
+	if (!pBuf->GetFlag()) // 只有包头部分打印日志，剩余部分打印日志无意义，而且有时候数量很多
+	{
+		LogDataDebug(pBuf->GetBuffer(), pBuf->GetUsed());
+	}
+
+	pBuf->Release();
+} 
+
+void CClientBase::OnWritePart(CBuffer* pBuf, int nSend) 
+{
+	LogDebug("CServerBase::OnWritePart(), \n connection(%s) \n write pkt parted, total=%d, write=%d, left=%d", 
+		GetTagConnInfo().c_str(), pBuf->GetWParam(), nSend, pBuf->GetUsed() - nSend);
+	if (!pBuf->GetFlag()) // 只有包头部分打印日志，剩余部分打印日志无意义，而且有时候数量很多
+	{
+		LogDataDebug(pBuf->GetBuffer(), pBuf->GetUsed());
+	}
+
+	pBuf->Cut(0, nSend);
+	if (pBuf->GetUsed() > 0)
+	{
+		pBuf->SetFlag(1);
+		m_SendQueue.AddHead(pBuf);
+
+		LogDebug("CClientBase::OnWritePart(), \n connection(%s) \n roll back the left data to send queue, total=%d, left=%d",
+			GetTagConnInfo().c_str(), pBuf->GetWParam(), pBuf->GetUsed());
+	}
+	else
+	{
+		LogDebug("CClientBase::OnWritePart(), \n connection(%s) \n left length=0.", 
+			GetTagConnInfo().c_str());
+
+		pBuf->Release();
+	}
+}
+
+void CClientBase::OnWriteError(CBuffer* pBuf) 
+{
+	int nErr = ERRNO;
+
+	if (nErr == EAGAIN || nErr == EINTR)
+	{
+		m_SendQueue.AddHead(pBuf);
+
+		LogImportant("CClientBase::OnWriteError(), \n connection(%s) \n write error=%d (EAGAIN or EINTR), put data back to send queue.",
+			GetTagConnInfo().c_str(), nErr);
+	}
+	else 
+	{
+		LogImportant("CClientBase::OnWriteError(), \n connection(%s) \n write error=%d, so will close client socket ...", 
+			GetTagConnInfo().c_str(), nErr);
+		LogDataImportant(pBuf->GetBuffer(), pBuf->GetUsed());
+
+		pBuf->Release();
+		CloseToServer(); 
+	}
+} 
+
+void CClientBase::DumpAllocator()
+{
+	LogImportant("CClientBase::DumpAllocator(), dump CClientBase::m_objBufAlloc\n%s", m_objBufAlloc.GetDumpStr().c_str());
+}
+
+
+
+
+

@@ -1,0 +1,762 @@
+//==============================================================================
+//                      ClientForwardBase.cpp
+//                       
+//begin   : 2016-08-30                                                 
+//describe:                                              
+//==============================================================================
+
+#include "Utility.h"
+#include "CommUtility.h"
+#include "AppPath.h"
+#include "tinyxml.h"
+#include "ClientForwardBase.h"
+
+//==============================================================================
+//                 
+//                    CClientForwardBase
+//           转发层客户端基类（带双网、转发条件机制）
+//
+//==============================================================================
+CClientForwardBase::CClientForwardBase()
+{
+	SetMyClassName("CClientForwardBase");
+	
+	m_objOutConds.SetEmptyAllowAll();
+	m_pBufRegPacket = m_objBufAlloc.Allocate();
+	assert(m_pBufRegPacket);
+}
+
+CClientForwardBase::~CClientForwardBase()
+{
+	if (m_pBufRegPacket)
+	{
+		m_pBufRegPacket->Release();	
+		m_pBufRegPacket = NULL;
+	}
+}
+
+bool CClientForwardBase::InitCommParam(TiXmlHandle& txhClient, char cNetNo)
+{
+	if (!LoadClientAddr())
+	{
+		return false;		
+	}
+	
+	// <ClientId>
+	if (!InitClientId(txhClient))
+	{
+		return false;
+	}
+
+	// <Type>
+	if (!InitClientType(txhClient))
+	{
+		return false;
+	}
+
+
+	if (m_nType == AF_UNIX)
+	{
+		if (cNetNo == 1)
+		{
+			// <UnixPath>
+			if (!InitServerPath(txhClient))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitCommParam(), \n AF_UNIX server should be single net mode!");
+			return false;
+		}
+	} 
+	else if (m_nType == AF_INET) 
+	{
+		// <MyIpPort>
+		TiXmlHandle txhMyIpPort = txhClient.FirstChild("MyIpPort");
+		if (txhMyIpPort.Element())
+		{
+			if (!InitMyIpPort(txhMyIpPort, cNetNo))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			// 在服务端配置初始化前，对于单网服务端，允许<MyIpPort>不配置；对于双网服务端，<MyIpPort>必须配置，以便于双网绑定
+			if (cNetNo != 1)
+			{
+				LogImportant("CClientForwardBase::InitCommParam(), \n fail to read <MyIpPort> for double net!");
+				return false;
+			}
+		}
+
+		// <ServerIpPort>
+		TiXmlHandle txhServerIpPort = txhClient.FirstChild("ServerIpPort");
+		if (txhServerIpPort.Element())
+		{
+			if (!InitServerIpPort(txhServerIpPort, cNetNo))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitCommParam(), \n fail to read <ServerIpPort>!");
+			return false;
+		}	
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitClientId(TiXmlHandle& txhClient)
+{
+	// <ClientId>
+	TiXmlElement* pTxeElem = txhClient.FirstChild("ClientId").Element();
+	if (pTxeElem)
+	{
+		int nCltId = CUtility::ATOI(pTxeElem->GetText());
+		if (nCltId < 1 || nCltId > 32767)
+		{
+			LogImportant("CClientForwardBase::InitClientId(), \n <ClientId>%d</ClientId> is out of the range(1-32767)!", nCltId);
+			return false;
+		}
+		else
+		{
+			SetClientId(nCltId);
+		}
+	}
+	else
+	{
+		LogImportant("CClientForwardBase::InitClientId(), \n fail to read <ClientId>!");
+		return false;
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitClientType(TiXmlHandle& txhClient)
+{
+	// <Type>
+	TiXmlElement* pTxeElem = txhClient.FirstChild("Type").Element();
+	if (pTxeElem)
+	{
+		if (!strcmp("AF_INET", pTxeElem->GetText()))
+		{
+			SetType(AF_INET);
+		}
+		else if (!strcmp("AF_UNIX", pTxeElem->GetText()))
+		{
+			SetType(AF_UNIX);
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitClientType(), \n fail to read the value of <Type>%s</Type>.",
+				pTxeElem->GetText());
+			return false;
+		}
+	}
+	else
+	{
+		LogImportant("CClientForwardBase::InitClientType(), \n fail to read <Type>!");
+		return false;
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitServerPath(TiXmlHandle& txhClient)
+{
+	// <UnixPath>
+	TiXmlElement* pTxeElem = txhClient.FirstChild("UnixPath").Element(); 
+	if (pTxeElem)
+	{
+		int nSvrPathLen = strlen(pTxeElem->GetText());
+		if (nSvrPathLen <= 0 || nSvrPathLen > UNIX_PATH_LEN - 1)
+		{
+			LogImportant("CClientForwardBase::InitServerPath(), \n <UnixPath>%s</UnixPath> len=%d "
+				"is out of the range(1-%d).", pTxeElem->GetText(), nSvrPathLen, UNIX_PATH_LEN - 1);
+			return false;
+		}
+		else
+		{
+			SetUnixPath(pTxeElem->GetText());
+		}
+	}
+	else
+	{
+		LogImportant("CClientForwardBase::InitServerPath(), \n fail to read <UnixPath>!");
+		return false;
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitMyIpPort(TiXmlHandle& txhMyIpPort, char cNetNo)
+{
+	TiXmlElement* pTxeElem = NULL;
+	if (cNetNo == 1)
+	{
+		// <MyIpPort><Ip>
+		pTxeElem = txhMyIpPort.FirstChild("Ip").Element(); 
+		if (pTxeElem) 
+		{ 
+			if (!CCommUtility::IsValidIP(pTxeElem->GetText())) 
+			{ 
+				LogImportant("CClientForwardBase::InitMyIpPort(), \n <MyIpPort><Ip>%s</Ip></MyIpPort> is invalid!", 
+					pTxeElem->GetText()); 
+				return false; 
+			} 
+			else 
+			{
+				
+				SetMyIp(pTxeElem->GetText());
+			} 
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitMyIpPort(), \n fail to read <MyIpPort><Ip>!");
+			return false;
+		}
+	
+		// <MyIpPort><Port>
+		pTxeElem = txhMyIpPort.FirstChild("Port").Element(); 
+		if (pTxeElem) 
+		{
+			int nPort = CUtility::ATOI(pTxeElem->GetText()); 
+			if (nPort < 0) 
+			{ 
+				LogImportant("CClientForwardBase::InitMyIpPort(), \n <MyIpPort><Port>%d</Port></MyIpPort> is out of range(1024-~)!", nPort); 
+				return false; 
+			} 
+			else
+			{
+				SetMyPort(nPort);
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitMyIpPort(), \n fail to read <MyIpPort><Port>!");
+			return false;
+		}
+	}
+	else if (cNetNo == 2)
+	{
+		// <MyIpPort><Ip2>
+		pTxeElem = txhMyIpPort.FirstChild("Ip2").Element(); 
+		if (pTxeElem) 
+		{ 
+			if (!CCommUtility::IsValidIP(pTxeElem->GetText())) 
+			{ 
+				LogImportant("CClientForwardBase::InitMyIpPort(), \n <MyIpPort><Ip2>%s</Ip2></MyIpPort> is invalid!", 
+					pTxeElem->GetText()); 
+				return false; 
+			} 
+			else 
+			{
+				SetMyIp(pTxeElem->GetText());
+			} 
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitMyIpPort(), \n fail to read <MyIpPort><Ip2>!");
+			return false;
+		}
+	
+		// <MyIpPort><Port2>
+		pTxeElem = txhMyIpPort.FirstChild("Port2").Element(); 
+		if (pTxeElem) 
+		{
+			int nPort = CUtility::ATOI(pTxeElem->GetText()); 
+			if (nPort < 0) 
+			{ 
+				LogImportant("CClientForwardBase::InitMyIpPort(), \n <MyIpPort><Port2>%d</Port2></MyIpPort> is out of range(1024-~)!", nPort); 
+				return false; 
+			} 
+			else
+			{
+				SetMyPort(nPort);
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitMyIpPort(), \n fail to read <MyIpPort><Port2>!");
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitServerIpPort(TiXmlHandle& txhServerIpPort, char cNetNo)
+{
+	TiXmlElement* pTxeElem = NULL;
+	if (cNetNo == 1)
+	{
+		// <ServerIpPort><Ip>
+		pTxeElem = txhServerIpPort.FirstChild("Ip").Element(); 
+		if (pTxeElem) 
+		{ 
+			if (!CCommUtility::IsValidIP(pTxeElem->GetText())) 
+			{ 
+				LogImportant("CClientForwardBase::InitServerIpPort(), \n <ServerIpPort><Ip>%s</Ip></ServerIpPort> is invalid!", 
+					pTxeElem->GetText()); 
+				return false; 
+			} 
+			else 
+			{
+				SetSvrIp(pTxeElem->GetText());
+			} 
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitServerIpPort(), \n fail to read <ServerIpPort><Ip>!");
+			return false;
+		}
+	
+		// <ServerIpPort><Port>
+		pTxeElem = txhServerIpPort.FirstChild("Port").Element(); 
+		if (pTxeElem) 
+		{
+			int nPort = CUtility::ATOI(pTxeElem->GetText()); 
+			if (nPort < 1024) 
+			{ 
+				LogImportant("CClientForwardBase::InitServerIpPort(), \n <ServerIpPort><Port>%d</Port></ServerIpPort> is out of range(1024-~)!", nPort); 
+				return false; 
+			} 
+			else
+			{
+				SetSvrPort(nPort);
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitServerIpPort(), \n fail to read <ServerIpPort><Port>!");
+			return false;
+		}
+	}
+	else if (cNetNo == 2)
+	{
+		// <ServerIpPort><Ip2>
+		pTxeElem = txhServerIpPort.FirstChild("Ip2").Element(); 
+		if (pTxeElem) 
+		{ 
+			if (!CCommUtility::IsValidIP(pTxeElem->GetText())) 
+			{ 
+				LogImportant("CClientForwardBase::InitServerIpPort(), \n <ServerIpPort><Ip2>%s</Ip2></ServerIpPort> is invalid!", 
+					pTxeElem->GetText()); 
+				return false; 
+			} 
+			else 
+			{
+				SetSvrIp(pTxeElem->GetText());
+			} 
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitServerIpPort(), \n fail to read <ServerIpPort><Ip2>!");
+			return false;
+		}
+	
+		// <ServerIpPort><Port2>
+		pTxeElem = txhServerIpPort.FirstChild("Port2").Element(); 
+		if (pTxeElem) 
+		{
+			int nPort = CUtility::ATOI(pTxeElem->GetText()); 
+			if (nPort < 1024) 
+			{ 
+				LogImportant("CClientForwardBase::InitServerIpPort(), \n <ServerIpPort><Port2>%d</Port2></ServerIpPort> is out of range(1024-~)!", nPort); 
+				return false; 
+			} 
+			else
+			{
+				SetSvrPort(nPort);
+			}
+		}
+		else
+		{
+			LogImportant("CClientForwardBase::InitServerIpPort(), \n fail to read <ServerIpPort><Port2>!");
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+		
+	return true;
+}
+
+bool CClientForwardBase::InitInCondition(TiXmlHandle& txhClient)
+{
+	if (m_pBufRegPacket)
+	{
+		m_pBufRegPacket->Empty();
+	}
+	else
+	{
+		m_pBufRegPacket = m_objBufAlloc.Allocate();
+	}
+	assert (m_pBufRegPacket);
+
+	bool bInitInCondOK = false;
+	TiXmlHandle txhIn = txhClient.FirstChild("InCondition");
+	if (txhIn.Element())
+	{
+		if (!m_objInConds.Init(txhIn))
+		{
+			LogImportant("CClientForwardBase::InitInCondition(), \n fail to parse <InCondition>!");
+			return false;
+		}
+		else
+		{
+			bInitInCondOK = true;
+		}
+	}
+	else
+	{
+		LogImportant("CClientForwardBase::InitInCondition(), \n fail to read <InCondition>!");
+		return false;
+	}
+
+	if (bInitInCondOK)
+	{
+		if (!CProtocolForward::MakeRegPack(m_pBufRegPacket, m_objInConds))
+		{
+			LogImportant("CClientForwardBase::InitInCondition(), \n fail to MakeRegPack by <InCondition>!");
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::InitOutCondition(TiXmlHandle& txhClient)
+{
+	TiXmlHandle txhOut = txhClient.FirstChild("OutCondition");
+	if (txhOut.Element())
+	{
+		if (!m_objOutConds.Init(txhOut))
+		{
+			LogImportant("CClientForwardBase::InitOutCondition(), \n fail to parse <OutCondition>!");
+			m_objOutConds.Clear();
+			return false;
+		}
+	}
+	else
+	{
+		m_objOutConds.Clear();
+		return false; 
+	}
+	
+	return true;
+}
+
+CForwardCondition* CClientForwardBase::GetInCondition()
+{
+	return &m_objInConds;
+}
+
+CForwardCondition* CClientForwardBase::GetOutCondition()
+{
+	return &m_objOutConds;
+}
+
+string CClientForwardBase::GetDumpParamStr()
+{
+	string strInfo;
+
+	strInfo += CClientSessionBase::GetDumpParamStr();
+	strInfo += string("\n");
+
+	strInfo += string("InCondition:\n");
+	strInfo += m_objInConds.GetDumpStr();
+	strInfo += string("\n");
+
+	strInfo += string("OutCondition:\n");
+	strInfo += m_objOutConds.GetDumpStr();
+	//strInfo += string("\n");
+
+	return strInfo;
+}
+
+void CClientForwardBase::DumpParam()
+{
+	LogImportant("CClientForwardBase::DumpParam(),\n%s", GetDumpParamStr().c_str());
+}
+
+void CClientForwardBase::DumpRegPacket()
+{
+	LogDataImportant(m_pBufRegPacket->GetBuffer(), m_pBufRegPacket->GetUsed(), "CClientForwardBase::DumpParam(),\n register buffer:");
+}
+
+void CClientForwardBase::OnSessionReady()
+{
+	CClientSessionBase::OnSessionReady();
+
+	if (m_pBufRegPacket && m_pBufRegPacket->GetUsed() > 0)
+	{
+		LogImportant("CClientForwardBase::OnSessionReady(): \n connection(%s) \n make register packet (forward protocol) ok!",
+			GetTagConnInfo().c_str());
+		LogDataDebug(m_pBufRegPacket->GetBuffer(), m_pBufRegPacket->GetUsed());
+
+		SendSessionData(m_pBufRegPacket);
+	}
+	else
+	{
+		LogImportant("CClientForwardBase::OnSessionReady(), \n connection(%s) \n make register packet (forward protocol) fail!",
+			GetTagConnInfo().c_str());
+	}
+}
+
+bool CClientForwardBase::SendForwardData(CBuffer* pBuf)
+{
+	CProtocolForward::CForwardHead objForwardHead;
+	return SendForwardData(objForwardHead, pBuf->GetBuffer(), pBuf->GetUsed());
+}
+
+bool CClientForwardBase::SendForwardData(char* szBuf, int nBufLen) 
+{
+	CProtocolForward::CForwardHead objForwardHead;
+	return SendForwardData(objForwardHead, szBuf, nBufLen);	
+}
+
+bool CClientForwardBase::SendForwardData(CProtocolForward::CForwardHead& objForwardHead, char* szBuf, int nBufLen)
+{
+	if (!IsConnect()) 
+	{ 
+		LogImportant("CClientForwardBase::SendForwardData(), \n connection(%s) \n it is disconnect, can not send data!",
+			GetTagConnInfo().c_str()); 
+		return false; 
+	} 
+	
+	if (nBufLen <= 0)
+	{
+		LogImportant("CClientForwardBase::SendForwardData(), \n connection(%s) \n send buf_len(%d) is error!", 
+			GetTagConnInfo().c_str(), nBufLen); 
+		return false; 
+	}
+
+	int nMsgBodyLen = nBufLen;
+	int nDataLen = objForwardHead.StreamSize() + nMsgBodyLen;
+	int nNeedLen = CProtocolSession::HeaderSize() + nDataLen;
+	if (nNeedLen > GetMaxPacketSize())
+	{ 
+		LogImportant("CClientForwardBase::SendForwardData(), \n connection(%s) \n send pkt need len(%d) is larger than max(%d)!",
+			GetTagConnInfo().c_str(), nNeedLen, GetMaxPacketSize()); 
+		return false; 
+	} 
+	
+	// 先分配足够内存
+	CBuffer* pBuf = m_objBufAlloc.Allocate(); 
+	if (!pBuf)
+	{
+		return false;
+	}
+	if (pBuf->GetAvailableSize() < nNeedLen)
+	{
+		pBuf->Extend(nNeedLen);
+	}
+	
+	// 会话层协议头打包，发送序号暂时设置为0，在发送的时候重新设置
+	CProtocolSession::CSessionHead objHead(nDataLen, SPT_DATA, 0); 
+	if (objHead.ToStreamBuf(pBuf->GetBuffer()) <= 0)
+	{
+		pBuf->Release();
+		return false;
+	}
+	pBuf->Use(CProtocolSession::HeaderSize());
+
+	// 转发层协议头打包
+	objForwardHead.SetMsgBodyLen(nMsgBodyLen);
+	int nBufLeft = pBuf->GetAvailableSize();
+	int nForwardHeadLen = objForwardHead.ToStreamBuf(pBuf->GetBuffer() + CProtocolSession::HeaderSize(), nBufLeft);
+	if (nForwardHeadLen <= 0)
+	{
+		pBuf->Release();
+		return false;
+	}
+	pBuf->Use(nForwardHeadLen);
+	
+	// 消息体打包
+	pBuf->AddData(szBuf, nBufLen);
+
+	// 对于业务程序客户端模块，需要对即将发送的数据设置源地址、类型码功能码信息，并进行严格检查
+	if (m_bIsAppClient) 
+	{
+		char* pForward = pBuf->GetBuffer() + CProtocolSession::HeaderSize();
+		int nLen = pBuf->GetUsed() - CProtocolSession::HeaderSize();
+		if (!SetSrcAddrForSendData(pForward, nLen))
+		{
+		}
+		
+		if (!SetTypeFuncForSendData(pForward, nLen))
+		{
+		}
+		
+		if (!CheckSendData(pForward, nLen))
+		{
+			LogImportant("CClientForwardBase::SendForwardData(), \n connection(%s) \n check send data fail, can not send data!", 
+				GetTagConnInfo().c_str());
+			pBuf->Release();
+			return false;
+		}
+	}	
+	
+	// 添加到发送队列	
+	pBuf->SetWParam(pBuf->GetUsed());
+	pBuf->SetFlag(0);
+	m_SendQueue.AddTail(pBuf);
+	
+	if (m_SendQueue.GetSize() > 64)
+	{
+		LogDebug("CClientForwardBase::SendForwardData(), \n connection(%s) \n m_SendQueue.GetSize()=%d is larger than 64." , 
+			GetTagConnInfo().c_str(), m_SendQueue.GetSize());
+	}
+	
+	return true; 
+}
+
+bool CClientForwardBase::SendForwardData(CProtocolForward::CForwardHead& objForwardHead, CBuffer* pBuf)
+{
+	return SendForwardData(objForwardHead, pBuf->GetBuffer(), pBuf->GetUsed());
+}
+
+bool CClientForwardBase::SetSrcAddrForSendData(char* szBuf, int nBufLen)
+{
+	if (CProtocolForward::IsMsgForwardPkt(szBuf, nBufLen))
+	{
+		if (!CProtocolForward::SetSrcAddr(szBuf, nBufLen, m_objClientAddr))
+		{
+			LogImportant("CClientForwardBase::SetSrcAddrForSendData(), \n connection(%s) \n fail to set src_addr for data pkt!",
+				GetTagConnInfo().c_str());
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::SetTypeFuncForSendData(char* szBuf, int nBufLen)
+{
+	if (CProtocolForward::IsMsgForwardPkt(szBuf, nBufLen))
+	{
+		if (!CProtocolForward::UpdateTypeFunc(szBuf, nBufLen))
+		{
+			LogImportant("CClientForwardBase::SetTypeFuncForSendData(), \n connection(%s) \n fail to set type_func info!",
+				GetTagConnInfo().c_str());
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::CheckSendData(char* szBuf, int nBufLen)
+{
+	char szErrInfo[1024];
+	memset(szErrInfo, 0, sizeof(szErrInfo));
+
+	if (!CProtocolForward::IsValid(szBuf, nBufLen, szErrInfo, sizeof(szErrInfo) - 1))
+	{
+		LogImportant("CClientForwardBase::CheckSendData(), \n connection(%s) \n pkt is invalid: %s", 
+			GetTagConnInfo().c_str(), szErrInfo);
+		return false;
+	}
+	
+	return true;
+}
+
+bool CClientForwardBase::CanGoOut(CProtocolForward::CForwardHead& objForwardHead)
+{
+	return m_objOutConds.IsMatched(objForwardHead);
+}
+
+bool CClientForwardBase::RecvForwardData(CProtocolForward::CForwardHead& objForwardHead, char* szBuf, int& nBufLen)
+{
+	bool bRet = false;
+	
+	CBuffer* pBufInQueue = NULL; 
+	if (m_RecvQueue.PeekHead(pBufInQueue)) 
+	{
+		int nDataLen = pBufInQueue->GetUsed() - CProtocolSession::HeaderSize();
+		if (nDataLen > nBufLen) 
+		{ 
+			nBufLen = nDataLen;
+		}
+		else if (m_RecvQueue.GetHead(pBufInQueue)) 
+		{
+			nDataLen = pBufInQueue->GetUsed() - CProtocolSession::HeaderSize();
+			if (nDataLen > 0)
+			{
+				char* pForward = pBufInQueue->GetBuffer() + CProtocolSession::HeaderSize();
+				if (objForwardHead.FromStreamBuf(pForward, nDataLen) > 0)
+				{
+					int nMsgBodyLen = nDataLen - objForwardHead.StreamSize();
+					if (nMsgBodyLen > 0)
+					{
+						char* pMsgBody = pForward + objForwardHead.StreamSize();
+						memcpy(szBuf, pMsgBody, nMsgBodyLen); 
+						nBufLen = nMsgBodyLen; 
+						bRet = true;  
+					}
+				}
+			}
+			
+			pBufInQueue->Release();
+		} 
+	} 
+	
+	return bRet; 
+} 
+
+bool CClientForwardBase::RecvForwardData(CProtocolForward::CForwardHead& objForwardHead, CBuffer* pBuf)
+{
+	assert(pBuf);
+
+	pBuf->Empty();
+	
+	bool bRet = false;
+	CBuffer* pBufInQueue = NULL; 
+	if (m_RecvQueue.GetHead(pBufInQueue)) 
+	{
+		int nDataLen = pBufInQueue->GetUsed() - CProtocolSession::HeaderSize();
+		if (nDataLen > 0)
+		{
+			char* pForward = pBufInQueue->GetBuffer() + CProtocolSession::HeaderSize();
+			if (objForwardHead.FromStreamBuf(pForward, nDataLen) > 0)
+			{
+				int nMsgBodyLen = nDataLen - objForwardHead.StreamSize();
+				if (nMsgBodyLen > 0)
+				{
+					char* pMsgBody = pForward + objForwardHead.StreamSize();
+					pBuf->AddData(pMsgBody, nMsgBodyLen);
+					bRet = true;
+				}
+			}
+		}
+
+		pBufInQueue->Release();
+	}
+	
+	return bRet; 
+}
+
+bool CClientForwardBase::RecvForwardData(char* szBuf, int& nBufLen)
+{
+	CProtocolForward::CForwardHead objForwardHead;
+	return RecvForwardData(objForwardHead, szBuf, nBufLen);
+}
+
+bool CClientForwardBase::RecvForwardData(CBuffer* pBuf)
+{
+	CProtocolForward::CForwardHead objForwardHead;
+	return RecvForwardData(objForwardHead, pBuf);
+}
+

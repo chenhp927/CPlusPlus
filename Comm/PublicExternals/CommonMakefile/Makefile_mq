@@ -1,0 +1,11 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_basic
+
+
+ifeq ($(IS_SRLIB),1)
+EXTRA_LIBS := $(EXTRA_LIBS) -lmqm
+else
+EXTRA_LIBS := $(EXTRA_LIBS) -lmqm
+endif
+
+INCS := $(INCS)
+

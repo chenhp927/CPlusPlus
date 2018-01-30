@@ -1,0 +1,79 @@
+#ifndef PROTOCOL_TIME_H
+#define PROTOCOL_TIME_H
+//==============================================================================
+//	
+//							 ProtocolTime.h
+//							   
+//begin	  : 2016/08/15
+//describe: 协议中传输的时间
+//
+//==============================================================================
+
+#ifdef UNIX
+#include <sys/time.h>
+#include "TypeDef.h"
+#include "Buffer.h" 
+#include "Utility.h"
+#include "CTime.h"
+#else
+#include <afx.h>
+#include <WINSOCK2.H>
+#include "Buffer.h"
+#endif
+
+#include "ObjectBase.h"
+
+namespace ProtocolBase
+{
+	//==============================================================================
+	//	
+	//							  CProtocolTime
+	//							 协议中传输的时间
+	//
+	//==============================================================================
+	class MY_EXT_CLASS CProtocolTime : public CObjectBase
+	{
+	public:
+		CProtocolTime();
+		CProtocolTime& operator = (const CProtocolTime& t);
+		virtual ~CProtocolTime(); 
+		
+	public:
+		int ToStreamBuf(char* pBuf, int& nBufLen);
+		int FromStreamBuf(const char* pBuf, int nBufLen);
+		
+		static int StreamSize();
+		
+		bool IsValidToCTime() const;
+		bool IsValid() const;
+		
+		void Set(BYTE byYear, BYTE byMonth, BYTE byDay, BYTE byHour, BYTE byMinute, BYTE bySecond, WORD wMilliSec);
+		void Set(time_t t, WORD wMilliSec);
+		void Set(DWORD dwDate, DWORD dwTime);		// wDate：年月日：20160912；wTime：时分秒毫秒：101010000
+		void Set(timeval t);
+		time_t GetTime() const;					// 获取从1970年1月1日0时0分0秒到现在时刻的秒数，没有毫秒
+		timeval GetTimeval() const;
+		WORD GetYear() const;
+		BYTE GetMonth() const;
+		BYTE GetDay() const;
+		BYTE GetHour() const;
+		BYTE GetMinute() const;
+		BYTE GetSecond() const;
+		WORD GetMilliSec() const;
+		DWORD GetDwDate() const;
+		DWORD GetDwTime() const;
+
+		// 获取时间字符串的接口，如果要显示或者输出到日志中可以使用此接口获取串
+		string GetTimeString();
+		bool operator==(const CProtocolTime &)const ;
+	private:
+		BYTE m_byYear;
+		BYTE m_byMonth;
+		BYTE m_byDay;
+		BYTE m_byHour;
+		BYTE m_byMinute;
+		BYTE m_bySecond;
+		WORD m_wMilliSec;
+	};
+}
+#endif

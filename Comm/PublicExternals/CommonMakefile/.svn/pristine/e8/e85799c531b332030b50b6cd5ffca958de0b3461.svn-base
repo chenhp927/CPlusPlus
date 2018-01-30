@@ -1,0 +1,25 @@
+all: ${OUTPUT}
+
+#****************************************************************************
+# Output
+#****************************************************************************
+${OUTPUT}: $(OBJS) 
+	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(EXTRA_LIBS) $(LIBS) 
+
+#****************************************************************************
+# common rules
+#****************************************************************************
+
+# Rules for compiling source files to object files
+.cpp.o:
+	${CXX} -c ${CXXFLAGS} ${INCS} $< -o $@
+
+dist:
+	bash makedistlinux
+
+clean:
+	-rm -f core $(OUTPUT) ${OBJS} 
+
+depend:
+	#makedepend ${INCS} ${SRCS}
+

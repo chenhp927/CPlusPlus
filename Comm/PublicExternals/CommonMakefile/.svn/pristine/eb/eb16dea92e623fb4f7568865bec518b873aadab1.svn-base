@@ -1,0 +1,16 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_basic
+
+#tdcs自律机没有预留多线程支持
+
+
+MSGCONVERTLIBPATH = ../msgconvert
+
+
+ifeq ($(IS_SRLIB),1)
+	EXTRA_LIBS := $(LIB_DIR)/msgconvertlib $(EXTRA_LIBS)
+else
+	EXTRA_LIBS := $(MSGCONVERTLIBPATH)/msgconvertlib $(EXTRA_LIBS)
+endif
+
+INCS := -I$(MSGCONVERTLIBPATH) $(INCS)
+

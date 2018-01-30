@@ -1,0 +1,16 @@
+include $(COMMON_MAKEFILE_DIR)/Makefile_basic
+
+#tdcs自律机没有预留多线程支持
+ifeq ($(IS_LINUX_TDCS),0)
+
+	COMMAPPLIBPATH = ../commapplib
+	THREADLIBPATH = ../threadlib
+
+	ifeq ($(IS_SRLIB),1)
+		EXTRA_LIBS := $(LIB_DIR)/commapplib $(LIB_DIR)/threadlib $(EXTRA_LIBS) -lpthread
+	else
+		EXTRA_LIBS := $(COMMAPPLIBPATH)/commapplib $(THREADLIBPATH)/threadlib $(EXTRA_LIBS) -lpthread
+	endif
+
+	INCS := -I$(COMMAPPLIBPATH) -I$(THREADLIBPATH) $(INCS)
+endif

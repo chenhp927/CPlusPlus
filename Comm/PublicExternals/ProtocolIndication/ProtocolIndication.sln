@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProtocolIndication", "ProtocolIndication.vcxproj", "{BBC81D09-F219-4C59-B67F-81B5DCD62A04}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BBC81D09-F219-4C59-B67F-81B5DCD62A04}.Debug|Win32.ActiveCfg = Debug|x64
+		{BBC81D09-F219-4C59-B67F-81B5DCD62A04}.Debug|Win32.Build.0 = Debug|x64
+		{BBC81D09-F219-4C59-B67F-81B5DCD62A04}.Release|Win32.ActiveCfg = Release|Win32
+		{BBC81D09-F219-4C59-B67F-81B5DCD62A04}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
